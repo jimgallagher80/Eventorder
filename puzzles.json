@@ -1,16 +1,6 @@
 {
   "2026-01-04": {
     "events": [
-      { "text": "The first Harry Potter book is published", "order": 1 },
-      { "text": "The first Harry Potter film is released", "order": 2 },
-      { "text": "The first Lord of the Rings film (The Fellowship of the Ring) is released", "order": 3 },
-      { "text": "The first Marvel Cinematic Universe film (Iron Man) is released", "order": 4 },
-      { "text": "The first Game of Thrones episode airs", "order": 5 },
-      { "text": "The first Star Wars film (A New Hope) is released", "order": 6 }
-    ]
-  },
-  "2026-01-05": {
-    "events": [
       { "text": "Abraham Lincoln is born", "order": 1 },
       { "text": "Ulysses S. Grant is born", "order": 2 },
       { "text": "William McKinley is born", "order": 3 },
@@ -19,7 +9,7 @@
       { "text": "Franklin D. Roosevelt is born", "order": 6 }
     ]
   },
-  "2026-01-06": {
+  "2026-01-05": {
     "events": [
       { "text": "The Football Association is founded in England", "order": 1 },
       { "text": "The first international football match is played", "order": 2 },
@@ -29,7 +19,7 @@
       { "text": "The first FIFA Women’s World Cup is held", "order": 6 }
     ]
   },
-  "2026-01-09": {
+  "2026-01-06": {
     "events": [
       { "text": "Megalosaurus is scientifically described", "order": 1 },
       { "text": "The term Dinosauria is coined", "order": 2 },
@@ -39,7 +29,7 @@
       { "text": "Jurassic Park is released", "order": 6 }
     ]
   },
-  "2026-01-10": {
+  "2026-01-07": {
     "events": [
       { "text": "Jaws is released", "order": 1 },
       { "text": "Close Encounters of the Third Kind is released", "order": 2 },
@@ -49,7 +39,7 @@
       { "text": "Schindler’s List is released", "order": 6 }
     ]
   },
-  "2026-01-12": {
+  "2026-01-08": {
     "events": [
       { "text": "Sputnik 1 is launched", "order": 1 },
       { "text": "Yuri Gagarin becomes the first human in space", "order": 2 },
@@ -59,7 +49,7 @@
       { "text": "The James Webb Space Telescope is launched", "order": 6 }
     ]
   },
-  "2026-01-13": {
+  "2026-01-09": {
     "events": [
       { "text": "IBM is founded", "order": 1 },
       { "text": "Sony is founded", "order": 2 },
@@ -69,7 +59,7 @@
       { "text": "Google is founded", "order": 6 }
     ]
   },
-  "2026-01-14": {
+  "2026-01-10": {
     "events": [
       { "text": "The modern Olympic Games begin (Athens)", "order": 1 },
       { "text": "Women first compete in the Olympic Games", "order": 2 },
@@ -79,7 +69,7 @@
       { "text": "The first Youth Olympic Games are held", "order": 6 }
     ]
   },
-  "2026-01-15": {
+  "2026-01-11": {
     "events": [
       { "text": "Alexander Fleming discovers penicillin", "order": 1 },
       { "text": "The first successful human kidney transplant is performed", "order": 2 },
@@ -89,7 +79,7 @@
       { "text": "The Human Genome Project is completed", "order": 6 }
     ]
   },
-  "2026-01-16": {
+  "2026-01-12": {
     "events": [
       { "text": "The Magna Carta is sealed", "order": 1 },
       { "text": "The Treaty of Westphalia is signed", "order": 2 },
@@ -99,7 +89,7 @@
       { "text": "The Good Friday Agreement is signed", "order": 6 }
     ]
   },
-  "2026-01-17": {
+  "2026-01-13": {
     "events": [
       { "text": "The Atari 2600 is released", "order": 1 },
       { "text": "The Nintendo Entertainment System (NES) is released", "order": 2 },
@@ -109,7 +99,7 @@
       { "text": "The Nintendo Switch is released", "order": 6 }
     ]
   },
-  "2026-01-18": {
+  "2026-01-14": {
     "events": [
       { "text": "Mary Shelley publishes Frankenstein", "order": 1 },
       { "text": "Charles Dickens publishes A Christmas Carol", "order": 2 },
@@ -119,7 +109,7 @@
       { "text": "Harper Lee publishes To Kill a Mockingbird", "order": 6 }
     ]
   },
-  "2026-01-19": {
+  "2026-01-15": {
     "events": [
       { "text": "The first modern Nobel Prizes are awarded", "order": 1 },
       { "text": "The Academy Awards (Oscars) are first held", "order": 2 },
@@ -129,7 +119,7 @@
       { "text": "The Nobel Prize in Economic Sciences is first awarded", "order": 6 }
     ]
   },
-  "2026-01-20": {
+  "2026-01-16": {
     "events": [
       { "text": "The Wright brothers achieve the first powered flight", "order": 1 },
       { "text": "Charles Lindbergh completes the first solo nonstop transatlantic flight", "order": 2 },
@@ -137,6 +127,46 @@
       { "text": "Yuri Gagarin becomes the first human in space", "order": 4 },
       { "text": "Concorde enters commercial service", "order": 5 },
       { "text": "The first powered flight on another planet (Ingenuity on Mars) occurs", "order": 6 }
+    ]
+  },
+  "2026-01-17": {
+    "events": [
+      { "text": "Star Trek: The Original Series premieres", "order": 1 },
+      { "text": "Star Trek: The Animated Series premieres", "order": 2 },
+      { "text": "Star Trek: The Next Generation premieres", "order": 3 },
+      { "text": "Star Trek: Deep Space Nine premieres", "order": 4 },
+      { "text": "Star Trek: Voyager premieres", "order": 5 },
+      { "text": "Star Trek: Enterprise premieres", "order": 6 }
+    ]
+  },
+  "2026-01-18": {
+    "events": [
+      { "text": "Michael Faraday discovers electromagnetic induction", "order": 1 },
+      { "text": "John Snow links cholera to contaminated water (Broad Street pump)", "order": 2 },
+      { "text": "Gregor Mendel publishes his work on inheritance", "order": 3 },
+      { "text": "Dmitri Mendeleev publishes the periodic table", "order": 4 },
+      { "text": "Wilhelm Röntgen discovers X-rays", "order": 5 },
+      { "text": "Marie and Pierre Curie discover polonium and radium", "order": 6 }
+    ]
+  },
+  "2026-01-19": {
+    "events": [
+      { "text": "Superman: The Movie is released", "order": 1 },
+      { "text": "Batman is released", "order": 2 },
+      { "text": "X-Men is released", "order": 3 },
+      { "text": "Spider-Man is released", "order": 4 },
+      { "text": "Iron Man is released", "order": 5 },
+      { "text": "Marvel’s The Avengers is released", "order": 6 }
+    ]
+  },
+  "2026-01-20": {
+    "events": [
+      { "text": "ENIAC is unveiled", "order": 1 },
+      { "text": "The transistor is invented", "order": 2 },
+      { "text": "The integrated circuit is invented", "order": 3 },
+      { "text": "ARPANET sends its first message", "order": 4 },
+      { "text": "IBM launches the IBM PC", "order": 5 },
+      { "text": "Apple releases the first iPhone", "order": 6 }
     ]
   }
 }
