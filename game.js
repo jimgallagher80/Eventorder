@@ -1,12 +1,11 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.09 (Beta) — persistent per-button feedback; hide grid panel until first attempt; fixed last-updated stamp
-
-  const VERSION = "1.09";
+  // v1.10 (Beta) — no on-screen grid; final reveal orders correctly; light-blue defaults; optional value line
+  const VERSION = "1.10";
 
   // Fixed "last updated" (set to when this code was produced, not runtime "now")
   // Europe/London
-  const LAST_UPDATED = "04 Jan 2026 18:00";
+  const LAST_UPDATED = "04 Jan 2026 18:10";
 
   const $ = (id) => document.getElementById(id);
 
@@ -61,7 +60,7 @@
   const storageKey = `orderthese:${todayKey}`;
 
   let events = [];
-  let attempts = [];      // emoji rows
+  let attempts = [];      // emoji rows (still tracked for sharing)
   let currentPick = [];   // indices into events
   let mistakes = 0;
   let gameOver = false;
@@ -81,7 +80,7 @@
   // UI helpers
   function setMessage(text) {
     const el = $("message");
-    if (el) el.textContent = text;
+    if (el) el.textContent = text || "";
   }
 
   function setBuildLine() {
@@ -94,12 +93,6 @@
     const el = $("meta");
     if (!el) return;
     el.textContent = `${formatDateWithOrdinal(today)} · Game ${gameNumber}`;
-  }
-
-  function setGridVisibility() {
-    const panel = $("gridPanel");
-    if (!panel) return;
-    panel.style.display = attempts.length > 0 ? "block" : "none";
   }
 
   // Modal & menu wiring
@@ -199,17 +192,13 @@
     }
   }
 
-  function renderGrid() {
-    const grid = $("grid");
-    if (!grid) return;
-
-    setGridVisibility();
-
-    if (attempts.length === 0) {
-      grid.textContent = "";
-      return;
-    }
-    grid.textContent = attempts.map(r => r.join(" ")).join("\n");
+  // Optional value line support:
+  // - If puzzles.json includes { "value": "1066" } or { "value": "12 Feb 1809" } etc, it will be shown on final reveal.
+  function getOptionalValueText(eventObj) {
+    if (!eventObj) return null;
+    if (typeof eventObj.value === "string" && eventObj.value.trim()) return eventObj.value.trim();
+    if (typeof eventObj.value === "number") return String(eventObj.value);
+    return null;
   }
 
   function renderEventButtons() {
@@ -218,62 +207,98 @@
 
     container.innerHTML = "";
 
-    events.forEach((e, idx) => {
+    // During play: keep shuffled order (events array)
+    // At game over: reveal correct order top-to-bottom (order 1..6)
+    const items = gameOver
+      ? events.map((e, idx) => ({ e, idx })).sort((a, b) => a.e.order - b.e.order)
+      : events.map((e, idx) => ({ e, idx }));
+
+    items.forEach(({ e, idx }) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "event-btn";
 
-      // Apply persistent feedback style
-      const fb = feedbackMap[idx];
-      if (fb === "🟩") btn.classList.add("fb-green");
-      else if (fb === "🟧") btn.classList.add("fb-amber");
-      else if (fb === "⬜") btn.classList.add("fb-white");
-
       const pickedPos = currentPick.indexOf(idx);
       if (pickedPos >= 0) btn.classList.add("selected");
 
-      const left = document.createElement("span");
-      left.textContent = e.text;
-
-      const badge = document.createElement("span");
-      badge.className = "choice-badge";
-
-      // While selecting: show 1..6
-      if (pickedPos >= 0) {
-        badge.textContent = String(pickedPos + 1);
-        badge.classList.remove("badge-correct");
+      // In-game feedback classes (hybrid)
+      if (!gameOver) {
+        const fb = feedbackMap[idx];
+        if (fb === "🟩") btn.classList.add("fb-green");
+        else if (fb === "🟧") btn.classList.add("fb-amber");
+        else if (fb === "⬜") btn.classList.add("fb-white");
       } else {
-        // Not currently selected:
-        // If it is known-green, show correct position number in light grey
-        if (fb === "🟩" && typeof correctPosMap[idx] === "number") {
-          badge.textContent = String(correctPosMap[idx]);
-          badge.classList.add("badge-correct");
-        } else {
-          badge.textContent = "";
-          badge.classList.remove("badge-correct");
+        // Final reveal styling (darker green, only at the end)
+        btn.classList.add("final-reveal");
+      }
+
+      // Left content (title + optional value line)
+      const leftWrap = document.createElement("div");
+      leftWrap.className = "event-left";
+
+      const title = document.createElement("div");
+      title.className = "event-title";
+      title.textContent = e.text;
+
+      leftWrap.appendChild(title);
+
+      // Only show value line on final reveal, and only if present
+      if (gameOver) {
+        const v = getOptionalValueText(e);
+        if (v) {
+          const val = document.createElement("div");
+          val.className = "event-value";
+          val.textContent = v;
+          leftWrap.appendChild(val);
         }
       }
 
-      btn.appendChild(left);
+      // Badge (selection order while playing; correct-position badge for greens)
+      const badge = document.createElement("span");
+      badge.className = "choice-badge";
+
+      if (!gameOver) {
+        if (pickedPos >= 0) {
+          badge.textContent = String(pickedPos + 1);
+          badge.classList.remove("badge-correct");
+        } else {
+          const fb = feedbackMap[idx];
+          if (fb === "🟩" && typeof correctPosMap[idx] === "number") {
+            badge.textContent = String(correctPosMap[idx]);
+            badge.classList.add("badge-correct");
+          } else {
+            badge.textContent = "";
+            badge.classList.remove("badge-correct");
+          }
+        }
+      } else {
+        // No badge during final reveal
+        badge.textContent = "";
+      }
+
+      btn.appendChild(leftWrap);
       btn.appendChild(badge);
 
+      // Disable all interaction on game over
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
 
-      btn.addEventListener("click", () => {
-        if (gameOver) return;
-        if (currentPick.length >= 6) return;
-        if (currentPick.includes(idx)) return;
+      if (!gameOver) {
+        btn.addEventListener("click", () => {
+          if (gameOver) return;
+          if (currentPick.length >= 6) return;
+          if (currentPick.includes(idx)) return;
 
-        currentPick.push(idx);
-        saveState();
+          currentPick.push(idx);
+          saveState();
 
-        renderEventButtons();
-        updateControls();
+          renderEventButtons();
+          updateControls();
 
-        if (currentPick.length === 6) {
-          queueMicrotask(submitAttempt);
-        }
-      });
+          if (currentPick.length === 6) {
+            queueMicrotask(submitAttempt);
+          }
+        });
+      }
 
       container.appendChild(btn);
     });
@@ -314,6 +339,14 @@
     }
   }
 
+  function endGame(messageText) {
+    gameOver = true;
+    saveState();
+    setMessage(messageText);
+    renderEventButtons();   // triggers final reveal ordering + styling
+    updateControls();
+  }
+
   function submitAttempt() {
     if (gameOver) return;
     if (currentPick.length !== 6) return;
@@ -342,15 +375,9 @@
     attempts.push(row);
     saveState();
 
-    renderGrid();
-
     const solved = row.every(c => c === "🟩");
     if (solved) {
-      gameOver = true;
-      saveState();
-      setMessage("Nice — you solved today’s Order These.");
-      renderEventButtons();
-      updateControls();
+      endGame("Nice — you solved today’s Order These.");
       return;
     }
 
@@ -358,11 +385,7 @@
     saveState();
 
     if (mistakes >= maxMistakes) {
-      gameOver = true;
-      saveState();
-      setMessage("Unlucky — try again tomorrow.");
-      renderEventButtons();
-      updateControls();
+      endGame("Unlucky — try again tomorrow.");
       return;
     }
 
@@ -381,7 +404,7 @@
     saveState();
     renderEventButtons();
     updateControls();
-    setMessage("Undone.");
+    setMessage("");
   }
 
   function clearAll() {
@@ -390,10 +413,11 @@
     saveState();
     renderEventButtons();
     updateControls();
-    setMessage("Cleared. Tap 6 items in order.");
+    setMessage("");
   }
 
   function buildShareText() {
+    // No spaces between emojis
     const gridLines = attempts.map(r => r.join("")).join("\n");
     return `Order These\nGame #${gameNumber}\n${gridLines}`;
   }
@@ -416,13 +440,13 @@
       await navigator.clipboard.writeText(text);
       setMessage("Results copied — paste anywhere.");
     } catch {
-      setMessage("Couldn’t copy automatically. Select and copy the grid.");
+      setMessage("Couldn’t copy automatically.");
     }
   }
 
   async function loadPuzzleForToday() {
     try {
-      setMessage("Loading today’s items…");
+      setMessage("Loading…");
 
       const res = await fetch("puzzles.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
@@ -442,8 +466,6 @@
         setBuildLine();
         setMeta();
         setMessage("No puzzle published for today yet.");
-        attempts = [];
-        renderGrid();
         updateControls();
         return;
       }
@@ -463,9 +485,8 @@
 
       saveState();
       renderEventButtons();
-      renderGrid();
       updateControls();
-      setMessage("Tap 6 items in order.");
+      setMessage("");
     } catch (err) {
       console.error(err);
       setMessage("Couldn’t load today’s items. Please refresh and try again.");
@@ -508,7 +529,7 @@
         const on = devToggle.checked;
         localStorage.setItem("orderthese:dev", on ? "true" : "false");
         if (on) clearSavedGame();
-        setMessage(on ? "Developer mode enabled (replay allowed)." : "Developer mode disabled.");
+        setMessage(on ? "Developer mode enabled." : "Developer mode disabled.");
       });
     }
   }
@@ -536,9 +557,8 @@
     if (loadState()) {
       setMeta();
       renderEventButtons();
-      renderGrid();
       updateControls();
-      setMessage(gameOver ? "Completed (replay allowed while in Developer mode)." : "Welcome back — continue.");
+      setMessage(gameOver ? "Completed." : "");
       return;
     }
 
