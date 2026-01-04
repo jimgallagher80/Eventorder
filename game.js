@@ -47,9 +47,16 @@
       if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
 
       const data = await res.json();
-      if (!data?.events?.length) throw new Error("No events found in puzzles.json");
+const todayKey = new Date().toISOString().slice(0,10); // YYYY-MM-DD
 
-      events = shuffle([...data.events]);
+const puzzle = data[todayKey];
+if (!puzzle || !puzzle.events) {
+  setMessage("No puzzle published for today yet.");
+  return;
+}
+
+events = shuffle([...puzzle.events]);
+
       renderAll();
       setMessage("Tap 6 events in order.");
     } catch (err) {
