@@ -517,3 +517,20 @@ body{
 }
 
 #history { display: none !important; }
+
+
+/* Hybrid feedback styling: thicker border + light tint */
+.event-btn.correct {
+  background: #ecfdf5;
+  border: 3px solid #16a34a;
+}
+
+.event-btn.partial {
+  background: #fff7ed;
+  border: 3px solid #f59e0b;
+}
+
+.event-btn.incorrect {
+  background: #f8fafc;
+  border: 3px solid #cbd5e1;
+}
