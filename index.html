@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Order These — Beta</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=112" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css?v=113" />
 </head>
+
 <body>
   <!-- Sticky top bar -->
   <header class="topbar">
@@ -48,9 +52,55 @@
   <div id="infoModal" class="modal" hidden>
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="infoTitle">How to play</h2>
-        <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
+        <h2>How to play</h2>
+        <button id="closeInfoBtn" class="close-btn" type="button">✕</button>
       </div>
 
       <div class="modal-body">
-        <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
+        <p><strong>Goal:</strong> Put the six items in the correct order.</p>
+        <p>You have <strong>3 attempts</strong>. The game submits automatically after 6 selections.</p>
+        <p><strong>Colours:</strong> 🟩 correct, 🟨 close, 🟦 incorrect.</p>
+
+        <div class="dev-panel">
+          <div class="dev-title">Developer</div>
+
+          <label class="toggle">
+            <input type="checkbox" id="devToggle">
+            <span class="toggle-ui"></span>
+            <span class="toggle-text">Developer mode (allow replay today)</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+  </div>
+
+  <!-- Main content -->
+  <main>
+    <p id="meta" class="meta"></p>
+    <p class="subtitle"><strong>Put these in order.</strong></p>
+
+    <p id="message" class="message"></p>
+
+    <div id="event-buttons" class="event-buttons"></div>
+
+    <!-- Controls (shown only during play) -->
+    <div class="row" id="controlsRow">
+      <button id="undo" class="secondary" disabled>Undo</button>
+      <button id="clear" class="secondary" disabled>Clear</button>
+    </div>
+
+    <!-- Share (shown only at end) -->
+    <div class="share-row">
+      <button id="share" class="share" style="display:none;">Share Results</button>
+    </div>
+
+    <!-- Footer -->
+    <p id="buildLine" class="buildline"></p>
+  </main>
+
+  <!-- IMPORTANT: this is the script line -->
+  <script src="game.js?v=113" defer></script>
+</body>
+</html>
