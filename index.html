@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Order These — Beta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=109" />
+  <link rel="stylesheet" href="style.css?v=110" />
 </head>
 <body>
   <!-- Sticky top bar -->
@@ -81,11 +81,6 @@
 
     <p id="message" class="message"></p>
 
-    <!-- Hidden until first attempt -->
-    <div class="panel" id="gridPanel" style="display:none;">
-      <pre id="grid" class="grid"></pre>
-    </div>
-
     <div class="row" id="controlsRow">
       <button id="undo" class="secondary" disabled>Undo</button>
       <button id="clear" class="secondary" disabled>Clear</button>
@@ -97,11 +92,10 @@
 
     <div id="event-buttons" class="event-buttons"></div>
 
-    <!-- Build line moved to bottom -->
+    <!-- Footer -->
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <!-- Cache-busted JS -->
-  <script src="game.js?v=109" defer></script>
+  <script src="game.js?v=110" defer></script>
 </body>
 </html>
