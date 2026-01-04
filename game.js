@@ -1,19 +1,23 @@
 (() => {
   // Event Order — daily click-to-select game.js
-  // Features:
-  // - Loads puzzle for today's date from puzzles.json (date-keyed)
-  // - Tap 6 events in order; each selected button shows 1–6 and changes colour
-  // - Auto-submits on the 6th selection
-  // - Undo (last selection) + Clear (all selections)
-  // - 3 mistakes max; win or lose ends the game and locks it for the day
-  // - Share button appears ONLY after completion; uses native share if available, else clipboard
-  // - On-page grid shows ONLY emoji rows (no title/game #); share text includes title + Game # + grid
-  // - Persists state per-day in localStorage so you can't replay that day (unless you clear storage manually)
+  // v1.03 (Beta)
+  // - Fixed header build line (Beta vX + last updated)
+  // - Previous attempts show selected event texts lightly + coloured dot
+  // - Share grid has NO spaces between emojis
+  // - Smaller UI + white theme
+  // - Info modal
 
-  // DOM helper
+  const VERSION = "1.03";
+  const LAST_UPDATED = new Date().toLocaleString("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
   const $ = (id) => document.getElementById(id);
 
-  // Date helpers
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
@@ -51,32 +55,53 @@
     return arr;
   }
 
-  // Game state
   const today = startOfDay(new Date());
   const todayKey = isoDateKey(today);
   const storageKey = `eventorder:${todayKey}`;
 
-  let events = [];        // today's events (shuffled display order)
-  let attempts = [];      // array of emoji rows
-  let currentPick = [];   // indices into `events` in selection order
+  let events = [];              // shuffled display order
+  let attempts = [];            // emoji rows (array of arrays)
+  let attemptPicks = [];        // array of arrays of picked event objects (for history)
+  let currentPick = [];         // indices into `events` in selection order
   let mistakes = 0;
   let gameOver = false;
 
   const maxMistakes = 3;
 
-  // Puzzle / numbering
-  let gameNumber = 1;             // computed from earliest puzzle date
-  let puzzleDateKey = todayKey;   // usually todayKey
+  let gameNumber = 1;
+  let puzzleDateKey = todayKey;
 
-  // Init
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  // Modal wiring
+  function wireInfoModal() {
+    const infoBtn = $("infoBtn");
+    const modal = $("infoModal");
+    const closeBtn = $("closeInfoBtn");
+    const backdrop = $("modalBackdrop");
+
+    if (!infoBtn || !modal || !closeBtn || !backdrop) return;
+
+    const open = () => { modal.hidden = false; };
+    const close = () => { modal.hidden = true; };
+
+    infoBtn.addEventListener("click", open);
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("click", close);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.hidden) close();
+    });
   }
 
   function init() {
-    // Wire controls (guarded)
+    // Build line
+    const buildLine = $("buildLine");
+    if (buildLine) {
+      buildLine.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
+    }
+
+    wireInfoModal();
+
+    // Controls
     const undoBtn = $("undo");
     const clearBtn = $("clear");
     const shareBtn = $("share");
@@ -85,9 +110,8 @@
     if (clearBtn) clearBtn.addEventListener("click", clearAll);
     if (shareBtn) shareBtn.addEventListener("click", shareResults);
 
-    // Try to restore today's saved game first (prevents replay)
+    // Restore today's saved game first
     if (loadState()) {
-      // Ensure meta is correct even after reload
       setMeta();
       renderAll();
       if (gameOver) {
@@ -107,12 +131,10 @@
     try {
       setMessage("Loading today’s events…");
 
-      const res = await fetch("puzzles.json", { cache: "no-store" });
+      const res = await fetch("./puzzles.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
       const data = await res.json();
 
-      // Expect date-keyed format:
-      // { "2026-01-05": { "events":[...] }, "2026-01-06": { "events":[...] }, ... }
       const keys = Object.keys(data || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
       if (keys.length === 0) throw new Error("No date keys found in puzzles.json");
 
@@ -123,19 +145,20 @@
 
       const puzzle = data[puzzleDateKey];
       if (!puzzle || !Array.isArray(puzzle.events) || puzzle.events.length !== 6) {
-        setMeta(earliestDate);
+        // Still compute game number so header reads properly if you’re before/after range
+        gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
+        setMeta();
         setMessage("No puzzle published for today yet.");
         disableAllInputs();
         return;
       }
 
-      // Compute game number based on earliest published puzzle date
       gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
-      setMeta(earliestDate);
+      setMeta();
 
-      // Initialise state for the day
       events = shuffle([...puzzle.events]);
       attempts = [];
+      attemptPicks = [];
       currentPick = [];
       mistakes = 0;
       gameOver = false;
@@ -159,6 +182,7 @@
   function renderAll() {
     renderEventButtons();
     renderGrid();
+    renderHistory();
     updateControls();
   }
 
@@ -200,7 +224,6 @@
         updateControls();
 
         if (currentPick.length === 6) {
-          // Auto-submit on the 6th tap
           queueMicrotask(submitAttempt);
         }
       });
@@ -240,9 +263,12 @@
     const row = evaluateRow(pickedEvents);
 
     attempts.push(row);
+    attemptPicks.push(pickedEvents);
+
     saveState();
 
     renderGrid();
+    renderHistory();
 
     const solved = row.every(c => c === "🟩");
 
@@ -265,7 +291,6 @@
       return;
     }
 
-    // Next attempt
     currentPick = [];
     saveState();
 
@@ -275,17 +300,15 @@
   }
 
   function evaluateRow(pick) {
-    // Green: correct absolute position (order 1..6)
-    // Amber: correct relative order with at least one neighbour (your chosen rule)
+    // 🟩: correct absolute position (1..6)
+    // 🟧: your "neighbour" heuristic (kept as-is)
     return pick.map((e, i) => {
       if (e.order === i + 1) return "🟩";
 
       const left = pick[i - 1];
       const right = pick[i + 1];
 
-      if ((left && left.order < e.order) || (right && right.order > e.order)) {
-        return "🟧";
-      }
+      if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
       return "⬜";
     });
   }
@@ -299,12 +322,58 @@
       return;
     }
 
-    // On-page grid: emoji rows only
-    grid.textContent = attempts.map(r => r.join(" ")).join("\n");
+    // No spaces between emojis (both on-page and share)
+    grid.textContent = attempts.map(r => r.join("")).join("\n");
+  }
+
+  function renderHistory() {
+    const history = $("history");
+    if (!history) return;
+
+    history.innerHTML = "";
+    if (attemptPicks.length === 0) return;
+
+    const title = document.createElement("p");
+    title.className = "history-title";
+    title.textContent = "Previous attempts (your selected events)";
+    history.appendChild(title);
+
+    attemptPicks.forEach((pick, attemptIdx) => {
+      const box = document.createElement("div");
+      box.className = "attempt";
+
+      const rowWrap = document.createElement("div");
+      rowWrap.className = "attempt-row";
+
+      const emojiRow = attempts[attemptIdx] || [];
+      pick.forEach((ev, i) => {
+        const item = document.createElement("div");
+        item.className = "attempt-item";
+
+        const t = document.createElement("div");
+        t.className = "attempt-text";
+        t.textContent = ev.text;
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+
+        const e = emojiRow[i];
+        if (e === "🟩") dot.classList.add("green");
+        else if (e === "🟧") dot.classList.add("amber");
+        else dot.classList.add("grey");
+
+        item.appendChild(t);
+        item.appendChild(dot);
+        rowWrap.appendChild(item);
+      });
+
+      box.appendChild(rowWrap);
+      history.appendChild(box);
+    });
   }
 
   function buildShareText() {
-    return `Event Order\nGame #${gameNumber}\n` + attempts.map(r => r.join(" ")).join("\n");
+    return `Event Order\nGame #${gameNumber}\n` + attempts.map(r => r.join("")).join("\n");
   }
 
   async function shareResults() {
@@ -325,7 +394,7 @@
       await navigator.clipboard.writeText(text);
       setMessage("Results copied — you can paste them anywhere.");
     } catch {
-      setMessage("Couldn’t share automatically. Select and copy the grid below.");
+      setMessage("Couldn’t share automatically. Select and copy the grid above.");
     }
   }
 
@@ -336,7 +405,6 @@
     if (undoBtn) undoBtn.disabled = gameOver || currentPick.length === 0;
     if (clearBtn) clearBtn.disabled = gameOver || currentPick.length === 0;
 
-    // Share button only visible after completion
     const shareBtn = $("share");
     if (shareBtn) {
       shareBtn.style.display = gameOver ? "inline-block" : "none";
@@ -351,16 +419,17 @@
 
   function disableAllInputs() {
     gameOver = true;
+
     const undoBtn = $("undo");
     const clearBtn = $("clear");
     const shareBtn = $("share");
+
     if (undoBtn) undoBtn.disabled = true;
     if (clearBtn) clearBtn.disabled = true;
     if (shareBtn) shareBtn.style.display = "none";
 
     const container = $("event-buttons");
     if (container) {
-      // If buttons exist, disable them
       [...container.querySelectorAll("button")].forEach(b => (b.disabled = true));
     }
   }
@@ -370,7 +439,6 @@
     if (msg) msg.textContent = text;
   }
 
-  // Persistence (prevents replay on same day)
   function saveState() {
     try {
       const state = {
@@ -378,13 +446,14 @@
         gameNumber,
         events,
         attempts,
+        attemptPicks,
         currentPick,
         mistakes,
         gameOver
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
-      // If storage fails, game still works; it just won't lock/persist
+      // no-op
     }
   }
 
@@ -401,6 +470,7 @@
 
       events = state.events;
       attempts = Array.isArray(state.attempts) ? state.attempts : [];
+      attemptPicks = Array.isArray(state.attemptPicks) ? state.attemptPicks : [];
       currentPick = Array.isArray(state.currentPick) ? state.currentPick : [];
       mistakes = typeof state.mistakes === "number" ? state.mistakes : 0;
       gameOver = !!state.gameOver;
@@ -410,4 +480,6 @@
       return false;
     }
   }
+
+  init();
 })();
