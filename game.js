@@ -4,7 +4,7 @@
   const VERSION = "1.12";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "04 Jan 2026 19:25";
+  const LAST_UPDATED = "04 Jan 2026 22:16";
 
   const $ = (id) => document.getElementById(id);
 
