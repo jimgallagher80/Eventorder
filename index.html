@@ -2,62 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Order These — Beta v1.05</title>
+  <title>Order These — Beta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- Sticky header: left buttons + centred logo -->
+  <!-- Sticky top bar -->
   <header class="topbar">
     <div class="left-actions">
+      <!-- Info button -->
       <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
-        <img class="icon-img" src="info.PNG" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-        <span class="icon-fallback" aria-hidden="true" style="display:none;">ℹ️</span>
+        <img src="info.PNG" alt="" class="icon-img"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" style="display:none;">ℹ️</span>
       </button>
 
-      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-haspopup="menu" aria-expanded="false">
-        <img class="icon-img" src="menu.PNG" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-        <span class="icon-fallback" aria-hidden="true" style="display:none;">☰</span>
+      <!-- Menu button -->
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
+        <img src="menu.PNG" alt="" class="icon-img"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" style="display:none;">☰</span>
       </button>
     </div>
 
+    <!-- Centre logo -->
     <div class="brand">
       <img
-        class="logo"
         src="logo.PNG"
         alt="Order These"
-        onerror="this.style.display='none';document.getElementById('logoText').style.display='block';"
+        class="logo"
+        onerror="this.style.display='none'; document.getElementById('logoText').style.display='block';"
       />
       <div id="logoText" class="logo-text" style="display:none;">Order These</div>
     </div>
   </header>
 
   <!-- Dropdown menu -->
-  <nav id="menuDropdown" class="menu" role="menu" hidden>
-    <a class="menu-item" role="menuitem" href="archive.html">Archive</a>
-    <a class="menu-item" role="menuitem" href="feedback.html">Feedback</a>
-    <a class="menu-item" role="menuitem" href="about.html">About</a>
+  <nav id="menuDropdown" class="menu" hidden>
+    <a href="archive.html">Archive</a>
+    <a href="feedback.html">Feedback</a>
+    <a href="about.html">About</a>
   </nav>
 
   <!-- Info modal -->
-  <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
+  <div id="infoModal" class="modal" hidden>
     <div class="modal-card">
       <div class="modal-header">
-        <h2 id="infoTitle">How to play</h2>
-        <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
+        <h2>How to play</h2>
+        <button id="closeInfoBtn" class="close-btn" type="button">✕</button>
       </div>
       <div class="modal-body">
         <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
-        <p>You have <strong>3 attempts</strong> per day. The game auto-submits when you’ve selected all 6.</p>
-        <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ not in the right place.</p>
-        <p>Your progress is saved for the day in your browser.</p>
+        <p>You have <strong>3 attempts</strong> per day. The game auto-submits on the 6th selection.</p>
+        <p><strong>Colours:</strong> 🟩 correct, 🟧 close, ⬜ incorrect.</p>
 
-        <div class="dev-panel">
-          <div class="dev-title">Developer</div>
-          <label class="toggle">
-            <input id="devToggle" type="checkbox" />
-            <span class="toggle-ui" aria-hidden="true"></span>
-            <span class="toggle-text">Developer mode: allow replay today</span>
-          </label>
-          <div class="dev-hint"
+        <hr>
+
+        <label class="dev-toggle">
+          <input type="checkbox" id="devToggle">
+          Developer mode (allow replay today)
+        </label>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+  </div>
+
+  <!-- Main content -->
+  <main>
+    <p id="buildLine" class="buildline"></p>
+    <p id="meta" class="meta"></p>
+    <p class="subtitle">Tap the items in order (earliest → latest).</p>
+
+    <p id="message" class="message"></p>
+
+    <div class="panel">
+      <pre id="grid" class="grid"></pre>
+    </div>
+
+    <div class="row" id="controlsRow">
+      <button id="undo" class="secondary" disabled>Undo</button>
+      <button id="clear" class="secondary" disabled>Clear</button>
+    </div>
+
+    <div class="share-row">
+      <button id="share" class="share" style="display:none;">Share</button>
+    </div>
+
+    <div id="history"></div>
+    <div id="event-buttons" class="event-buttons"></div>
+  </main>
+
+  <!-- IMPORTANT: cache-busted JS -->
+  <script src="game.js?v=105" defer></script>
+</body>
+</html>
