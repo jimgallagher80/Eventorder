@@ -1,11 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.10 (Beta) — no on-screen grid; final reveal orders correctly; light-blue defaults; optional value line
-  const VERSION = "1.10";
+  // v1.11 (Beta) — NYT-style colours; animated reorders; green items move into correct slots during play; controls below; share label
+  const VERSION = "1.11";
 
-  // Fixed "last updated" (set to when this code was produced, not runtime "now")
-  // Europe/London
-  const LAST_UPDATED = "04 Jan 2026 18:10";
+  // Fixed "last updated" (Europe/London)
+  const LAST_UPDATED = "04 Jan 2026 19:05";
 
   const $ = (id) => document.getElementById(id);
 
@@ -14,7 +13,6 @@
   // - persistent: localStorage "orderthese:dev" === "true"
   const DEV_QUERY = new URLSearchParams(window.location.search).get("dev") === "1";
   const DEV_PERSIST = localStorage.getItem("orderthese:dev") === "true";
-  const DEV = DEV_QUERY || DEV_PERSIST;
 
   // Date helpers
   function startOfDay(d) {
@@ -54,23 +52,78 @@
     return arr;
   }
 
+  // FLIP animation helpers
+  function prefersReducedMotion() {
+    try {
+      return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      return false;
+    }
+  }
+
+  function recordPositions(container) {
+    const map = new Map();
+    if (!container) return map;
+    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
+      map.set(el.dataset.key, el.getBoundingClientRect());
+    });
+    return map;
+  }
+
+  function playFlip(container, firstPositions) {
+    if (!container) return;
+    if (prefersReducedMotion()) return;
+
+    const lastPositions = new Map();
+    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
+      lastPositions.set(el.dataset.key, el.getBoundingClientRect());
+    });
+
+    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
+      const key = el.dataset.key;
+      const first = firstPositions.get(key);
+      const last = lastPositions.get(key);
+      if (!first || !last) return;
+
+      const dx = first.left - last.left;
+      const dy = first.top - last.top;
+      if (dx === 0 && dy === 0) return;
+
+      el.style.transition = "none";
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+
+      requestAnimationFrame(() => {
+        el.style.transition = "";
+        el.style.transform = "";
+      });
+    });
+  }
+
   // State
   const today = startOfDay(new Date());
   const todayKey = isoDateKey(today);
   const storageKey = `orderthese:${todayKey}`;
 
-  let events = [];
-  let attempts = [];      // emoji rows (still tracked for sharing)
-  let currentPick = [];   // indices into events
+  let events = [];             // { text, order, value? }
+  let attempts = [];           // emoji rows (share only)
+  let currentPick = [];        // indices into events
   let mistakes = 0;
   let gameOver = false;
 
-  // Track attempted full sequences so repeating doesn't cost a turn
-  let attemptedSignatures = [];
+  let attemptedSignatures = []; // "idx-idx-idx-idx-idx-idx"
 
-  // Per-button feedback (persistent across attempts)
-  let feedbackMap = {};   // { [idx]: "🟩"|"🟧"|"⬜" }
-  let correctPosMap = {}; // { [idx]: number }
+  // Most recent attempt feedback only (colours can change each attempt)
+  let feedbackMap = {};        // { [eventIdx]: "G"|"Y"|"B" }
+  let correctPosMap = {};      // { [eventIdx]: number } for current attempt greens
+
+  // NEW: once an item has ever been green, it moves into its correct slot and stays there
+  let placedMap = {};          // { [eventIdx]: number } 1..6
+
+  // NEW: display order of event indices (length 6)
+  let displayOrder = [];       // [eventIdx, ...] length 6
+
+  // Cached DOM nodes for stability + smooth animation
+  const btnEls = new Map();    // key=eventIdx string -> button element
 
   const maxMistakes = 3;
 
@@ -133,7 +186,9 @@
         gameOver,
         attemptedSignatures,
         feedbackMap,
-        correctPosMap
+        correctPosMap,
+        placedMap,
+        displayOrder
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
@@ -160,6 +215,10 @@
       attemptedSignatures = Array.isArray(state.attemptedSignatures) ? state.attemptedSignatures : [];
       feedbackMap = state.feedbackMap && typeof state.feedbackMap === "object" ? state.feedbackMap : {};
       correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
+      placedMap = state.placedMap && typeof state.placedMap === "object" ? state.placedMap : {};
+      displayOrder = Array.isArray(state.displayOrder) && state.displayOrder.length === 6
+        ? state.displayOrder
+        : events.map((_, i) => i);
 
       return true;
     } catch {
@@ -192,233 +251,21 @@
     }
   }
 
-  // Optional value line support:
-  // - If puzzles.json includes { "value": "1066" } or { "value": "12 Feb 1809" } etc, it will be shown on final reveal.
-  function getOptionalValueText(eventObj) {
-    if (!eventObj) return null;
-    if (typeof eventObj.value === "string" && eventObj.value.trim()) return eventObj.value.trim();
-    if (typeof eventObj.value === "number") return String(eventObj.value);
-    return null;
-  }
-
-  function renderEventButtons() {
-    const container = $("event-buttons");
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    // During play: keep shuffled order (events array)
-    // At game over: reveal correct order top-to-bottom (order 1..6)
-    const items = gameOver
-      ? events.map((e, idx) => ({ e, idx })).sort((a, b) => a.e.order - b.e.order)
-      : events.map((e, idx) => ({ e, idx }));
-
-    items.forEach(({ e, idx }) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "event-btn";
-
-      const pickedPos = currentPick.indexOf(idx);
-      if (pickedPos >= 0) btn.classList.add("selected");
-
-      // In-game feedback classes (hybrid)
-      if (!gameOver) {
-        const fb = feedbackMap[idx];
-        if (fb === "🟩") btn.classList.add("fb-green");
-        else if (fb === "🟧") btn.classList.add("fb-amber");
-        else if (fb === "⬜") btn.classList.add("fb-white");
-      } else {
-        // Final reveal styling (darker green, only at the end)
-        btn.classList.add("final-reveal");
-      }
-
-      // Left content (title + optional value line)
-      const leftWrap = document.createElement("div");
-      leftWrap.className = "event-left";
-
-      const title = document.createElement("div");
-      title.className = "event-title";
-      title.textContent = e.text;
-
-      leftWrap.appendChild(title);
-
-      // Only show value line on final reveal, and only if present
-      if (gameOver) {
-        const v = getOptionalValueText(e);
-        if (v) {
-          const val = document.createElement("div");
-          val.className = "event-value";
-          val.textContent = v;
-          leftWrap.appendChild(val);
-        }
-      }
-
-      // Badge (selection order while playing; correct-position badge for greens)
-      const badge = document.createElement("span");
-      badge.className = "choice-badge";
-
-      if (!gameOver) {
-        if (pickedPos >= 0) {
-          badge.textContent = String(pickedPos + 1);
-          badge.classList.remove("badge-correct");
-        } else {
-          const fb = feedbackMap[idx];
-          if (fb === "🟩" && typeof correctPosMap[idx] === "number") {
-            badge.textContent = String(correctPosMap[idx]);
-            badge.classList.add("badge-correct");
-          } else {
-            badge.textContent = "";
-            badge.classList.remove("badge-correct");
-          }
-        }
-      } else {
-        // No badge during final reveal
-        badge.textContent = "";
-      }
-
-      btn.appendChild(leftWrap);
-      btn.appendChild(badge);
-
-      // Disable all interaction on game over
-      btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
-
-      if (!gameOver) {
-        btn.addEventListener("click", () => {
-          if (gameOver) return;
-          if (currentPick.length >= 6) return;
-          if (currentPick.includes(idx)) return;
-
-          currentPick.push(idx);
-          saveState();
-
-          renderEventButtons();
-          updateControls();
-
-          if (currentPick.length === 6) {
-            queueMicrotask(submitAttempt);
-          }
-        });
-      }
-
-      container.appendChild(btn);
-    });
-  }
-
   function evaluateRow(pick) {
+    // Using your existing logic but mapping outputs to G/Y/B (green/yellow/blue)
     return pick.map((e, i) => {
-      if (e.order === i + 1) return "🟩";
+      if (e.order === i + 1) return "G";
       const left = pick[i - 1];
       const right = pick[i + 1];
-      if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
-      return "⬜";
+      if ((left && left.order < e.order) || (right && right.order > e.order)) return "Y";
+      return "B";
     });
-  }
-
-  function mergePersistentFeedback(eventIdx, emoji, pos1to6) {
-    const prev = feedbackMap[eventIdx];
-
-    // Green always wins and sets the known correct position
-    if (emoji === "🟩") {
-      feedbackMap[eventIdx] = "🟩";
-      correctPosMap[eventIdx] = pos1to6;
-      return;
-    }
-
-    // If already green, never downgrade
-    if (prev === "🟩") return;
-
-    // Amber beats white/unknown
-    if (emoji === "🟧") {
-      feedbackMap[eventIdx] = "🟧";
-      return;
-    }
-
-    // White only if nothing better is known yet
-    if (emoji === "⬜") {
-      if (!prev) feedbackMap[eventIdx] = "⬜";
-    }
-  }
-
-  function endGame(messageText) {
-    gameOver = true;
-    saveState();
-    setMessage(messageText);
-    renderEventButtons();   // triggers final reveal ordering + styling
-    updateControls();
-  }
-
-  function submitAttempt() {
-    if (gameOver) return;
-    if (currentPick.length !== 6) return;
-
-    const sig = currentPick.join("-");
-    if (attemptedSignatures.includes(sig)) {
-      // Reset without using up a turn
-      currentPick = [];
-      saveState();
-      renderEventButtons();
-      updateControls();
-      setMessage("Order already attempted");
-      return;
-    }
-
-    attemptedSignatures.push(sig);
-
-    const pickedEvents = currentPick.map(i => events[i]);
-    const row = evaluateRow(pickedEvents);
-
-    // Merge per-button feedback into persistent knowledge
-    currentPick.forEach((eventIdx, pos) => {
-      mergePersistentFeedback(eventIdx, row[pos], pos + 1);
-    });
-
-    attempts.push(row);
-    saveState();
-
-    const solved = row.every(c => c === "🟩");
-    if (solved) {
-      endGame("Nice — you solved today’s Order These.");
-      return;
-    }
-
-    mistakes += 1;
-    saveState();
-
-    if (mistakes >= maxMistakes) {
-      endGame("Unlucky — try again tomorrow.");
-      return;
-    }
-
-    // Next attempt: keep same order, clear selection
-    currentPick = [];
-    saveState();
-    renderEventButtons();
-    updateControls();
-    setMessage(`Not quite. Attempts remaining: ${maxMistakes - mistakes}.`);
-  }
-
-  function undo() {
-    if (gameOver) return;
-    if (currentPick.length === 0) return;
-    currentPick.pop();
-    saveState();
-    renderEventButtons();
-    updateControls();
-    setMessage("");
-  }
-
-  function clearAll() {
-    if (gameOver) return;
-    currentPick = [];
-    saveState();
-    renderEventButtons();
-    updateControls();
-    setMessage("");
   }
 
   function buildShareText() {
-    // No spaces between emojis
-    const gridLines = attempts.map(r => r.join("")).join("\n");
+    // Map G/Y/B to emoji (no spaces)
+    const map = { G: "🟩", Y: "🟨", B: "🟦" };
+    const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
     return `Order These\nGame #${gameNumber}\n${gridLines}`;
   }
 
@@ -442,6 +289,281 @@
     } catch {
       setMessage("Couldn’t copy automatically.");
     }
+  }
+
+  function getOptionalValueText(eventObj) {
+    if (!eventObj) return null;
+    if (typeof eventObj.value === "string" && eventObj.value.trim()) return eventObj.value.trim();
+    if (typeof eventObj.value === "number") return String(eventObj.value);
+    return null;
+  }
+
+  function ensureButtonsExist() {
+    const container = $("event-buttons");
+    if (!container) return;
+
+    // Create buttons once for each event index
+    for (let i = 0; i < events.length; i++) {
+      const key = String(i);
+      if (btnEls.has(key)) continue;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "event-btn";
+      btn.dataset.key = key;
+
+      const leftWrap = document.createElement("div");
+      leftWrap.className = "event-left";
+
+      const title = document.createElement("div");
+      title.className = "event-title";
+      leftWrap.appendChild(title);
+
+      const val = document.createElement("div");
+      val.className = "event-value";
+      val.style.display = "none";
+      leftWrap.appendChild(val);
+
+      const badge = document.createElement("span");
+      badge.className = "choice-badge";
+
+      btn.appendChild(leftWrap);
+      btn.appendChild(badge);
+
+      btn.addEventListener("click", () => {
+        if (gameOver) return;
+
+        const idx = Number(btn.dataset.key);
+        if (Number.isNaN(idx)) return;
+        if (currentPick.length >= 6) return;
+        if (currentPick.includes(idx)) return;
+
+        currentPick.push(idx);
+        saveState();
+
+        updateButtonsAndOrder();
+
+        if (currentPick.length === 6) {
+          queueMicrotask(submitAttempt);
+        }
+      });
+
+      btnEls.set(key, btn);
+      container.appendChild(btn);
+    }
+  }
+
+  function computeVisualOrder() {
+    // At game over: always show true correct order (order 1..6)
+    if (gameOver) {
+      const order = events
+        .map((e, idx) => ({ idx, ord: e.order }))
+        .sort((a, b) => a.ord - b.ord)
+        .map(x => x.idx);
+      return order;
+    }
+
+    // During play:
+    // Fixed slots from placedMap (ever-green) stay put; fill remaining in current relative order.
+    const fixed = Array(6).fill(null);
+    Object.keys(placedMap || {}).forEach(k => {
+      const idx = Number(k);
+      const pos = Number(placedMap[k]);
+      if (!Number.isNaN(idx) && pos >= 1 && pos <= 6) fixed[pos - 1] = idx;
+    });
+
+    const fixedSet = new Set(fixed.filter(x => x !== null));
+    const remaining = (displayOrder.length === 6 ? displayOrder : events.map((_, i) => i))
+      .filter(i => !fixedSet.has(i));
+
+    const next = [];
+    let r = 0;
+    for (let s = 0; s < 6; s++) {
+      if (fixed[s] !== null) next.push(fixed[s]);
+      else next.push(remaining[r++]);
+    }
+    return next;
+  }
+
+  function updateButtonsAndOrder() {
+    const container = $("event-buttons");
+    if (!container) return;
+
+    ensureButtonsExist();
+
+    const first = recordPositions(container);
+
+    // Compute and apply new visual order
+    const newOrder = computeVisualOrder();
+    displayOrder = newOrder.slice(); // persist the latest visual order during play
+
+    // Re-append buttons in the new order
+    newOrder.forEach(idx => {
+      const el = btnEls.get(String(idx));
+      if (el) container.appendChild(el);
+    });
+
+    // Update button styles/content after reordering
+    newOrder.forEach(idx => {
+      const btn = btnEls.get(String(idx));
+      if (!btn) return;
+
+      const e = events[idx];
+
+      const leftWrap = btn.querySelector(".event-left");
+      const title = leftWrap ? leftWrap.querySelector(".event-title") : null;
+      const val = leftWrap ? leftWrap.querySelector(".event-value") : null;
+      const badge = btn.querySelector(".choice-badge");
+
+      if (title) title.textContent = e.text;
+
+      // value line only on final reveal
+      if (val) {
+        if (gameOver) {
+          const v = getOptionalValueText(e);
+          if (v) {
+            val.textContent = v;
+            val.style.display = "block";
+          } else {
+            val.textContent = "";
+            val.style.display = "none";
+          }
+        } else {
+          val.textContent = "";
+          val.style.display = "none";
+        }
+      }
+
+      // Classes
+      btn.classList.remove("fb-blue", "fb-yellow", "fb-green", "final-reveal", "selected");
+
+      const pickedPos = currentPick.indexOf(idx);
+      if (pickedPos >= 0) btn.classList.add("selected");
+
+      if (gameOver) {
+        btn.classList.add("final-reveal");
+      } else {
+        const fb = feedbackMap[idx];
+        if (fb === "G") btn.classList.add("fb-green");
+        else if (fb === "Y") btn.classList.add("fb-yellow");
+        else btn.classList.add("fb-blue");
+      }
+
+      // Badge behaviour
+      if (badge) {
+        badge.classList.remove("badge-correct");
+        if (gameOver) {
+          badge.textContent = "";
+        } else if (pickedPos >= 0) {
+          badge.textContent = String(pickedPos + 1);
+        } else {
+          // If it's ever been green (placed), show its slot number in light grey
+          const placed = placedMap[idx];
+          if (typeof placed === "number" && placed >= 1 && placed <= 6) {
+            badge.textContent = String(placed);
+            badge.classList.add("badge-correct");
+          } else {
+            badge.textContent = "";
+          }
+        }
+      }
+
+      // Disabled rules (same as before)
+      btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
+    });
+
+    // Animate movement
+    requestAnimationFrame(() => {
+      playFlip(container, first);
+    });
+
+    saveState();
+    updateControls();
+  }
+
+  function submitAttempt() {
+    if (gameOver) return;
+    if (currentPick.length !== 6) return;
+
+    const sig = currentPick.join("-");
+    if (attemptedSignatures.includes(sig)) {
+      currentPick = [];
+      saveState();
+      updateButtonsAndOrder();
+      setMessage("Order already attempted");
+      return;
+    }
+
+    attemptedSignatures.push(sig);
+
+    const pickedEvents = currentPick.map(i => events[i]);
+    const row = evaluateRow(pickedEvents); // ["G","Y","B",...]
+
+    // Update feedback for MOST RECENT attempt only
+    const newFeedback = {};
+    const newCorrect = {};
+
+    currentPick.forEach((eventIdx, pos) => {
+      const c = row[pos];
+      newFeedback[eventIdx] = c;
+      if (c === "G") newCorrect[eventIdx] = pos + 1;
+    });
+
+    feedbackMap = newFeedback;
+    correctPosMap = newCorrect;
+
+    // Any greens in this attempt get "placed" permanently into their correct slot (visual)
+    currentPick.forEach((eventIdx, pos) => {
+      if (row[pos] === "G") {
+        placedMap[eventIdx] = pos + 1; // 1..6
+      }
+    });
+
+    attempts.push(row);
+    saveState();
+
+    const solved = row.every(c => c === "G");
+    if (solved) {
+      gameOver = true;
+      saveState();
+      setMessage("Nice — you solved today’s Order These.");
+      updateButtonsAndOrder();
+      return;
+    }
+
+    mistakes += 1;
+    saveState();
+
+    if (mistakes >= maxMistakes) {
+      gameOver = true;
+      saveState();
+      setMessage("Unlucky — try again tomorrow.");
+      updateButtonsAndOrder();
+      return;
+    }
+
+    // Next attempt: clear selection; keep visual order (including placed greens)
+    currentPick = [];
+    saveState();
+    updateButtonsAndOrder();
+    setMessage(`Not quite. Attempts remaining: ${maxMistakes - mistakes}.`);
+  }
+
+  function undo() {
+    if (gameOver) return;
+    if (currentPick.length === 0) return;
+    currentPick.pop();
+    saveState();
+    updateButtonsAndOrder();
+    setMessage("");
+  }
+
+  function clearAll() {
+    if (gameOver) return;
+    currentPick = [];
+    saveState();
+    updateButtonsAndOrder();
+    setMessage("");
   }
 
   async function loadPuzzleForToday() {
@@ -475,6 +597,7 @@
       setMeta();
 
       events = shuffle([...puzzle.events]);
+
       attempts = [];
       currentPick = [];
       mistakes = 0;
@@ -482,10 +605,13 @@
       attemptedSignatures = [];
       feedbackMap = {};
       correctPosMap = {};
+      placedMap = {};
+
+      // Initial visual order = 0..5 (events already shuffled)
+      displayOrder = events.map((_, i) => i);
 
       saveState();
-      renderEventButtons();
-      updateControls();
+      updateButtonsAndOrder();
       setMessage("");
     } catch (err) {
       console.error(err);
@@ -556,8 +682,7 @@
 
     if (loadState()) {
       setMeta();
-      renderEventButtons();
-      updateControls();
+      updateButtonsAndOrder();
       setMessage(gameOver ? "Completed." : "");
       return;
     }
