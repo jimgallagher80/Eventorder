@@ -1,8 +1,8 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.07 (Beta) — remove history list; persist order; per-button feedback; prevent duplicate attempts
+  // v1.08 (Beta) — persist per-button feedback across attempts; greens stay locked-in visually
 
-  const VERSION = "1.07";
+  const VERSION = "1.08";
   const LAST_UPDATED = new Date().toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
@@ -73,7 +73,8 @@
   // signature is "idx-idx-idx-idx-idx-idx"
   let attemptedSignatures = [];
 
-  // Per-button feedback for *most recent attempt* (maps eventIdx -> "🟩/🟧/⬜")
+  // Per-button feedback (persistent across attempts)
+  // maps eventIdx -> "🟩/🟧/⬜"
   let feedbackMap = {}; // { [idx]: "🟩"|"🟧"|"⬜" }
   // For greens: show correct position number (1..6) in badge, light grey
   let correctPosMap = {}; // { [idx]: number }
@@ -205,7 +206,6 @@
       grid.textContent = "";
       return;
     }
-    // On-page grid: keep it readable; share output will be compact.
     grid.textContent = attempts.map(r => r.join(" ")).join("\n");
   }
 
@@ -220,7 +220,7 @@
       btn.type = "button";
       btn.className = "event-btn";
 
-      // Apply feedback style from the most recent attempt (if any)
+      // Apply persistent feedback style
       const fb = feedbackMap[idx];
       if (fb === "🟩") btn.classList.add("fb-green");
       else if (fb === "🟧") btn.classList.add("fb-amber");
@@ -235,13 +235,13 @@
       const badge = document.createElement("span");
       badge.className = "choice-badge";
 
-      // While selecting: show 1..6 as before
+      // While selecting: show 1..6
       if (pickedPos >= 0) {
         badge.textContent = String(pickedPos + 1);
         badge.classList.remove("badge-correct");
       } else {
         // Not currently selected:
-        // If it was green last attempt, show correct position number in light grey
+        // If it is known-green, show correct position number in light grey
         if (fb === "🟩" && typeof correctPosMap[idx] === "number") {
           badge.textContent = String(correctPosMap[idx]);
           badge.classList.add("badge-correct");
@@ -286,13 +286,37 @@
     });
   }
 
+  function mergePersistentFeedback(eventIdx, emoji, pos1to6) {
+    const prev = feedbackMap[eventIdx];
+
+    // Green always wins and sets the known correct position
+    if (emoji === "🟩") {
+      feedbackMap[eventIdx] = "🟩";
+      correctPosMap[eventIdx] = pos1to6;
+      return;
+    }
+
+    // If already green, never downgrade
+    if (prev === "🟩") return;
+
+    // Amber beats white/unknown
+    if (emoji === "🟧") {
+      feedbackMap[eventIdx] = "🟧";
+      return;
+    }
+
+    // White only if nothing better is known yet
+    if (emoji === "⬜") {
+      if (!prev) feedbackMap[eventIdx] = "⬜";
+    }
+  }
+
   function submitAttempt() {
     if (gameOver) return;
     if (currentPick.length !== 6) return;
 
     const sig = currentPick.join("-");
     if (attemptedSignatures.includes(sig)) {
-      // Reset without using up a turn
       currentPick = [];
       saveState();
       renderEventButtons();
@@ -306,21 +330,11 @@
     const pickedEvents = currentPick.map(i => events[i]);
     const row = evaluateRow(pickedEvents);
 
-    // Build per-button feedback from this attempt
-    // idx in events -> emoji result, and correctPosMap for greens
-    const newFeedback = {};
-    const newCorrectPos = {};
+    // Merge per-button feedback from this attempt into persistent knowledge
     currentPick.forEach((eventIdx, pos) => {
       const emoji = row[pos];
-      newFeedback[eventIdx] = emoji;
-      if (emoji === "🟩") {
-        // correct position number (1..6)
-        newCorrectPos[eventIdx] = pos + 1;
-      }
+      mergePersistentFeedback(eventIdx, emoji, pos + 1);
     });
-
-    feedbackMap = newFeedback;
-    correctPosMap = newCorrectPos;
 
     attempts.push(row);
     saveState();
@@ -349,7 +363,7 @@
       return;
     }
 
-    // Next attempt: keep same order, but clear selection (feedback remains visible)
+    // Next attempt: keep same order, clear selection (feedback remains visible)
     currentPick = [];
     saveState();
     renderEventButtons();
@@ -377,7 +391,6 @@
   }
 
   function buildShareText() {
-    // No spaces between emojis
     const gridLines = attempts.map(r => r.join("")).join("\n");
     return `Order These\nGame #${gameNumber}\n${gridLines}`;
   }
