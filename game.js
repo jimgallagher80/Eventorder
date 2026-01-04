@@ -1,8 +1,8 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.06 (Beta) — clean rebuild to avoid early JS errors + ensure header buttons work
+  // v1.07 (Beta) — remove history list; persist order; per-button feedback; prevent duplicate attempts
 
-  const VERSION = "1.06";
+  const VERSION = "1.07";
   const LAST_UPDATED = new Date().toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
@@ -61,8 +61,6 @@
   // State
   const today = startOfDay(new Date());
   const todayKey = isoDateKey(today);
-
-  // We store by date, but in DEV mode we allow replay, so we don't block load.
   const storageKey = `orderthese:${todayKey}`;
 
   let events = [];
@@ -70,6 +68,15 @@
   let currentPick = [];   // indices into events
   let mistakes = 0;
   let gameOver = false;
+
+  // Track attempted full sequences so repeating doesn't cost a turn
+  // signature is "idx-idx-idx-idx-idx-idx"
+  let attemptedSignatures = [];
+
+  // Per-button feedback for *most recent attempt* (maps eventIdx -> "🟩/🟧/⬜")
+  let feedbackMap = {}; // { [idx]: "🟩"|"🟧"|"⬜" }
+  // For greens: show correct position number (1..6) in badge, light grey
+  let correctPosMap = {}; // { [idx]: number }
 
   const maxMistakes = 3;
 
@@ -97,13 +104,11 @@
   // Modal & menu wiring
   function openInfo() {
     const modal = $("infoModal");
-    if (!modal) return;
-    modal.hidden = false;
+    if (modal) modal.hidden = false;
   }
   function closeInfo() {
     const modal = $("infoModal");
-    if (!modal) return;
-    modal.hidden = true;
+    if (modal) modal.hidden = true;
   }
 
   function closeMenu() {
@@ -116,7 +121,6 @@
     const dd = $("menuDropdown");
     const btn = $("menuBtn");
     if (!dd) return;
-
     const willOpen = dd.hidden === true;
     dd.hidden = !willOpen;
     if (btn) btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
@@ -132,7 +136,10 @@
         attempts,
         currentPick,
         mistakes,
-        gameOver
+        gameOver,
+        attemptedSignatures,
+        feedbackMap,
+        correctPosMap
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
     } catch {
@@ -156,6 +163,10 @@
       mistakes = typeof state.mistakes === "number" ? state.mistakes : 0;
       gameOver = !!state.gameOver;
 
+      attemptedSignatures = Array.isArray(state.attemptedSignatures) ? state.attemptedSignatures : [];
+      feedbackMap = state.feedbackMap && typeof state.feedbackMap === "object" ? state.feedbackMap : {};
+      correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
+
       return true;
     } catch {
       return false;
@@ -163,11 +174,7 @@
   }
 
   function clearSavedGame() {
-    try {
-      localStorage.removeItem(storageKey);
-    } catch {
-      // ignore
-    }
+    try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
   }
 
   // Game logic
@@ -198,50 +205,8 @@
       grid.textContent = "";
       return;
     }
-    // On-page grid can have spaces for readability (optional).
-    // We'll keep spaces on-screen, but not in share output.
+    // On-page grid: keep it readable; share output will be compact.
     grid.textContent = attempts.map(r => r.join(" ")).join("\n");
-  }
-
-  function renderHistory() {
-    const hist = $("history");
-    if (!hist) return;
-
-    hist.innerHTML = "";
-
-    if (attempts.length === 0) return;
-
-    const title = document.createElement("div");
-    title.className = "history-title";
-    title.textContent = "Previous attempts";
-    hist.appendChild(title);
-
-    attempts.forEach((row, idx) => {
-      const line = document.createElement("div");
-      line.className = "history-row";
-
-      const label = document.createElement("div");
-      label.className = "history-attempt";
-      label.textContent = `Attempt ${idx + 1}`;
-
-      const boxes = document.createElement("div");
-      boxes.className = "history-boxes";
-
-      // We don’t have the actual selected texts stored in v1.06 state,
-      // so we show the coloured indicators + position numbers lightly.
-      // (If you want the exact texts stored, we can add that next.)
-      row.forEach((emoji, pos) => {
-        const b = document.createElement("div");
-        b.className = "history-box";
-        b.dataset.colour = emoji; // for CSS mapping
-        b.textContent = String(pos + 1);
-        boxes.appendChild(b);
-      });
-
-      line.appendChild(label);
-      line.appendChild(boxes);
-      hist.appendChild(line);
-    });
   }
 
   function renderEventButtons() {
@@ -255,6 +220,12 @@
       btn.type = "button";
       btn.className = "event-btn";
 
+      // Apply feedback style from the most recent attempt (if any)
+      const fb = feedbackMap[idx];
+      if (fb === "🟩") btn.classList.add("fb-green");
+      else if (fb === "🟧") btn.classList.add("fb-amber");
+      else if (fb === "⬜") btn.classList.add("fb-white");
+
       const pickedPos = currentPick.indexOf(idx);
       if (pickedPos >= 0) btn.classList.add("selected");
 
@@ -263,7 +234,22 @@
 
       const badge = document.createElement("span");
       badge.className = "choice-badge";
-      badge.textContent = pickedPos >= 0 ? String(pickedPos + 1) : "";
+
+      // While selecting: show 1..6 as before
+      if (pickedPos >= 0) {
+        badge.textContent = String(pickedPos + 1);
+        badge.classList.remove("badge-correct");
+      } else {
+        // Not currently selected:
+        // If it was green last attempt, show correct position number in light grey
+        if (fb === "🟩" && typeof correctPosMap[idx] === "number") {
+          badge.textContent = String(correctPosMap[idx]);
+          badge.classList.add("badge-correct");
+        } else {
+          badge.textContent = "";
+          badge.classList.remove("badge-correct");
+        }
+      }
 
       btn.appendChild(left);
       btn.appendChild(badge);
@@ -293,10 +279,8 @@
   function evaluateRow(pick) {
     return pick.map((e, i) => {
       if (e.order === i + 1) return "🟩";
-
       const left = pick[i - 1];
       const right = pick[i + 1];
-
       if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
       return "⬜";
     });
@@ -306,14 +290,42 @@
     if (gameOver) return;
     if (currentPick.length !== 6) return;
 
+    const sig = currentPick.join("-");
+    if (attemptedSignatures.includes(sig)) {
+      // Reset without using up a turn
+      currentPick = [];
+      saveState();
+      renderEventButtons();
+      updateControls();
+      setMessage("Order already attempted");
+      return;
+    }
+
+    attemptedSignatures.push(sig);
+
     const pickedEvents = currentPick.map(i => events[i]);
     const row = evaluateRow(pickedEvents);
+
+    // Build per-button feedback from this attempt
+    // idx in events -> emoji result, and correctPosMap for greens
+    const newFeedback = {};
+    const newCorrectPos = {};
+    currentPick.forEach((eventIdx, pos) => {
+      const emoji = row[pos];
+      newFeedback[eventIdx] = emoji;
+      if (emoji === "🟩") {
+        // correct position number (1..6)
+        newCorrectPos[eventIdx] = pos + 1;
+      }
+    });
+
+    feedbackMap = newFeedback;
+    correctPosMap = newCorrectPos;
 
     attempts.push(row);
     saveState();
 
     renderGrid();
-    renderHistory();
 
     const solved = row.every(c => c === "🟩");
     if (solved) {
@@ -337,9 +349,9 @@
       return;
     }
 
+    // Next attempt: keep same order, but clear selection (feedback remains visible)
     currentPick = [];
     saveState();
-
     renderEventButtons();
     updateControls();
     setMessage(`Not quite. Attempts remaining: ${maxMistakes - mistakes}.`);
@@ -365,7 +377,7 @@
   }
 
   function buildShareText() {
-    // No spaces between emojis per your requirement
+    // No spaces between emojis
     const gridLines = attempts.map(r => r.join("")).join("\n");
     return `Order These\nGame #${gameNumber}\n${gridLines}`;
   }
@@ -415,7 +427,6 @@
         setMeta();
         setMessage("No puzzle published for today yet.");
         renderGrid();
-        renderHistory();
         updateControls();
         return;
       }
@@ -429,11 +440,13 @@
       currentPick = [];
       mistakes = 0;
       gameOver = false;
+      attemptedSignatures = [];
+      feedbackMap = {};
+      correctPosMap = {};
 
       saveState();
       renderEventButtons();
       renderGrid();
-      renderHistory();
       updateControls();
       setMessage("Tap 6 items in order.");
     } catch (err) {
@@ -477,7 +490,6 @@
       devToggle.addEventListener("change", () => {
         const on = devToggle.checked;
         localStorage.setItem("orderthese:dev", on ? "true" : "false");
-        // For immediate testing convenience, clear saved game when turning dev on
         if (on) clearSavedGame();
         setMessage(on ? "Developer mode enabled (replay allowed)." : "Developer mode disabled.");
       });
@@ -499,17 +511,15 @@
     wireHeaderUI();
     wireGameUI();
 
-    // In dev mode, we allow replay: ignore saved game-over lock by clearing it
+    // In dev mode, allow replay by clearing today's save
     if (localStorage.getItem("orderthese:dev") === "true" || DEV_QUERY) {
       clearSavedGame();
     }
 
-    // Try to restore saved game
     if (loadState()) {
       setMeta();
       renderEventButtons();
       renderGrid();
-      renderHistory();
       updateControls();
       setMessage(gameOver ? "Completed (replay allowed while in Developer mode)." : "Welcome back — continue.");
       return;
