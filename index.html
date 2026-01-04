@@ -2,32 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Event Order v1.03</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Event Order — Beta v1.03</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<main>
-  <h1>Event Order v1.03</h1>
-  <p id="meta" class="meta"></p>
+  <!-- Fixed header -->
+  <header class="topbar">
+    <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
+      ℹ️
+    </button>
 
-  <p class="subtitle">Tap events in order (earliest → latest).</p>
+    <div class="brand">
+      <!-- Replace logo.svg with your graphic file -->
+      <img class="logo" src="logo.svg" alt="Event Order" onerror="this.style.display='none';document.getElementById('logoText').style.display='block';" />
+      <div id="logoText" class="logo-text" style="display:none;">Event Order</div>
+      <div id="buildLine" class="buildline"></div>
+    </div>
 
-  
+    <!-- Spacer to balance the left icon button -->
+    <div class="topbar-spacer" aria-hidden="true"></div>
+  </header>
 
-  <p id="message" class="message"></p>
-
-  <pre id="grid"></pre>
-  <div class="row">
-    <button id="undo" class="secondary" type="button" disabled>Undo</button>
-    <button id="clear" class="secondary" type="button" disabled>Clear</button>
-    <button id="share" type="button" class="share" style="display:none;">Share results</button>
+  <!-- Info modal -->
+  <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="infoTitle">How to play</h2>
+        <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Goal:</strong> tap the 6 events in chronological order (earliest → latest).</p>
+        <p>You have <strong>3 attempts</strong> per day. The game auto-submits when you’ve selected all 6.</p>
+        <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ not in the right place.</p>
+        <p>Your progress is saved for the day in your browser.</p>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
   </div>
 
-  <div id="event-buttons" class="event-buttons"></div>
-</main>
+  <main>
+    <p id="meta" class="meta"></p>
+    <p class="subtitle">Tap events in order (earliest → latest).</p>
+
+    <p id="message" class="message"></p>
+
+    <div class="panel">
+      <pre id="grid" class="grid" aria-label="Results grid"></pre>
+    </div>
+
+    <div class="row">
+      <button id="undo" class="secondary" type="button" disabled>Undo</button>
+      <button id="clear" class="secondary" type="button" disabled>Clear</button>
+      <button id="share" type="button" class="share" style="display:none;">Share results</button>
+    </div>
+
+    <div id="history" class="history" aria-label="Previous attempts"></div>
+
+    <div id="event-buttons" class="event-buttons"></div>
+  </main>
 
   <script src="game.js" defer></script>
-
 </body>
 </html>
