@@ -516,3 +516,4 @@ body{
   border-color: #e5e7eb;
 }
 
+#history { display: none !important; }
