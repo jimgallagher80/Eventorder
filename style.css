@@ -30,6 +30,9 @@
 
   /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
+
+  /* New: smaller topbar */
+  --topbarBase: 66px; /* was 92px */
 }
 
 *{ box-sizing: border-box; }
@@ -62,7 +65,7 @@ button,
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   padding-top: var(--safeTop);
-  height: calc(92px + var(--safeTop));
+  height: calc(var(--topbarBase) + var(--safeTop));
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -75,8 +78,8 @@ button,
 }
 
 .icon-btn{
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 12px;
@@ -87,8 +90,8 @@ button,
 }
 
 .icon-img{
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: block;
 }
 
@@ -101,11 +104,12 @@ button,
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 68px; /* balances left buttons visually */
+  padding-right: 64px; /* balances left buttons visually */
 }
 
+/* Logo reduced to ~2/3 size */
 .logo{
-  height: 64px;
+  height: 42px; /* was 64px */
   width: auto;
   max-width: 100%;
   display: block;
@@ -113,14 +117,14 @@ button,
 
 .logo-text{
   font-weight: 800;
-  font-size: 22px;
+  font-size: 20px;
 }
 
 /* Main layout */
 main{
   max-width: 680px;
   margin: 0 auto;
-  padding: calc(102px + var(--safeTop)) 14px 18px 14px;
+  padding: calc(var(--topbarBase) + 18px + var(--safeTop)) 14px 18px 14px;
 }
 
 .meta{
@@ -304,10 +308,15 @@ button.secondary{
   border: 3px solid var(--green);
 }
 
+/* Hide the badge entirely during final reveal */
+.event-btn.final-reveal .choice-badge{
+  display: none;
+}
+
 /* Dropdown menu */
 .menu{
   position: fixed;
-  top: calc(92px + var(--safeTop));
+  top: calc(var(--topbarBase) + var(--safeTop));
   left: 12px;
   z-index: 2000;
   width: 180px;
@@ -350,7 +359,7 @@ button.secondary{
   position: relative;
   z-index: 3001;
   width: min(560px, calc(100% - 28px));
-  margin: calc(102px + var(--safeTop)) auto 0 auto;
+  margin: calc(var(--topbarBase) + 18px + var(--safeTop)) auto 0 auto;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 16px;
