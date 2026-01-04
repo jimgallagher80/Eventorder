@@ -49,13 +49,13 @@
   <div id="infoModal" class="modal" hidden>
     <div class="modal-card">
       <div class="modal-header">
-        <h2>How to play</h2>
-        <button id="closeInfoBtn" class="close-btn" type="button">✕</button>
+        <h2 id="infoTitle">How to play</h2>
+        <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
         <p>You have <strong>3 attempts</strong> per day. The game auto-submits on the 6th selection.</p>
-        <p><strong>Colours:</strong> 🟩 correct, 🟧 close, ⬜ incorrect.</p>
+        <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ incorrect.</p>
 
         <hr>
 
@@ -89,11 +89,10 @@
       <button id="share" class="share" style="display:none;">Share</button>
     </div>
 
-    <div id="history"></div>
     <div id="event-buttons" class="event-buttons"></div>
   </main>
 
-  <!-- IMPORTANT: cache-busted JS -->
-  <script src="game.js?v=105" defer></script>
+  <!-- Cache-busted JS -->
+  <script src="game.js?v=107" defer></script>
 </body>
 </html>
