@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Order These — Beta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=111" />
+  <link rel="stylesheet" href="style.css?v=112" />
 </head>
 <body>
   <!-- Sticky top bar -->
@@ -54,50 +54,3 @@
 
       <div class="modal-body">
         <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
-        <p>You have <strong>3 attempts</strong> per day. The game auto-submits on the 6th selection.</p>
-        <p><strong>Colours:</strong> 🟩 correct position, 🟨 close/partially ordered, 🟦 incorrect.</p>
-
-        <div class="dev-panel">
-          <div class="dev-title">Developer</div>
-
-          <label class="toggle">
-            <input type="checkbox" id="devToggle">
-            <span class="toggle-ui" aria-hidden="true"></span>
-            <span class="toggle-text">Developer mode (allow replay today)</span>
-          </label>
-
-          <div class="dev-hint">When enabled, today’s saved game is cleared so you can test repeatedly.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-backdrop" id="modalBackdrop"></div>
-  </div>
-
-  <!-- Main content -->
-  <main>
-    <p id="meta" class="meta"></p>
-    <p class="subtitle">Put these in order.</p>
-
-    <p id="message" class="message"></p>
-
-    <div id="event-buttons" class="event-buttons"></div>
-
-    <!-- Controls now BELOW selections -->
-    <div class="row" id="controlsRow">
-      <button id="undo" class="secondary" disabled>Undo</button>
-      <button id="clear" class="secondary" disabled>Clear</button>
-    </div>
-
-    <!-- Share centred at the bottom -->
-    <div class="share-row">
-      <button id="share" class="share" style="display:none;">Share Results</button>
-    </div>
-
-    <!-- Footer -->
-    <p id="buildLine" class="buildline"></p>
-  </main>
-
-  <script src="game.js?v=111" defer></script>
-</body>
-</html>
