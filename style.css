@@ -24,9 +24,10 @@
   --blueTint: #e6f3ff;
   --blueBorder: #93c5fd;
 
-  /* New: darker green for final reveal only */
-  --finalGreen: #15803d;
-  --finalGreenTint: #dcfce7;
+    /* NYT Connections green (approx) */
+  --finalGreenTint: #A0C35A; /* background */
+  --finalGreen: #7EA83D;     /* border (slightly darker) */
+
 
   /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
@@ -457,4 +458,21 @@ button.share{
   text-align: center;
   font-size: 12px;
   color: var(--muted);
+}
+
+/* Share row centred at bottom */
+.share-row{
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+/* Share button: light blue, not full width */
+#share.share{
+  width: auto;
+  padding: 12px 18px;
+  background: var(--blueTint);
+  color: var(--text);
+  border: 1px solid var(--blueBorder);
+  border-radius: 14px;
 }
