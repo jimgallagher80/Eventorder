@@ -15,23 +15,34 @@ h1 {
   margin-bottom: 0.2rem;
 }
 
+.meta {
+  margin: 0.25rem 0 0.75rem 0;
+  color: #94a3b8;
+}
+
 .subtitle {
   margin-top: 0;
   color: #94a3b8;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 2rem 0;
+.message {
+  margin: 0 0 0.75rem 0;
+  color: #cbd5e1;
 }
 
-li {
-  background: #1e293b;
-  margin-bottom: 0.5rem;
-  padding: 0.75rem;
+pre {
+  margin-top: 1.5rem;
+  background: #020617;
+  padding: 1rem;
   border-radius: 6px;
-  cursor: grab;
+  font-size: 1.1rem;
+  white-space: pre-wrap;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
 }
 
 button {
@@ -44,175 +55,12 @@ button {
   color: white;
 }
 
-pre {
-  margin-top: 1.5rem;
-  background: #020617;
-  padding: 1rem;
-  border-radius: 6px;
-  font-size: 1.1rem;
-}
-
-.event-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.event-text {
-  flex: 1;
-  cursor: default;
-}
-
-.controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.ctrl-btn {
-  background: #334155;
-  color: #e5e7eb;
-  border: 1px solid #475569;
-  border-radius: 8px;
-  padding: 0.4rem 0.6rem;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.ctrl-btn:active {
-  transform: scale(0.98);
-}
-
-.hint {
-  margin-top: -1rem;
-  color: #94a3b8;
-  font-size: 0.95rem;
-}
-
-.panel {
-  background: #111c33;
-  border: 1px solid #223255;
-  border-radius: 10px;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-.h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  color: #cbd5e1;
-}
-
-.event-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.event-btn {
-  text-align: left;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 0.85rem;
-  color: #e5e7eb;
-  font-size: 1rem;
-}
-
-.event-btn:disabled {
-  opacity: 0.55;
-}
-
-.pick-list {
-  margin: 0 0 1rem 1.25rem;
-  padding: 0;
-}
-
-.pick-list li {
-  padding: 0.35rem 0;
-  color: #e5e7eb;
-}
-
-.row {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-button.secondary {
-  background: #334155;
-}
-
-.message {
-  margin: 0.75rem 0 0 0;
-  color: #cbd5e1;
-}
-
-.event-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 1rem;
-}
-
-.event-btn {
-  text-align: left;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
-  color: #e5e7eb;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.event-btn.selected {
-  background: #0b3b2e;          /* dark greenish */
-  border-color: #1f8a6a;
-}
-
-.event-btn:disabled {
-  opacity: 0.9;                /* keep readable even when disabled */
-}
-
-.choice-badge {
-  min-width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  background: #0f172a;
-  border: 1px solid #334155;
-  color: #e5e7eb;
-}
-
-.row {
-  display: flex;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
 button.secondary {
   background: #334155;
 }
 
 button:disabled {
   opacity: 0.6;
-}
-
-.message {
-  margin: 0 0 0.75rem 0;
-  color: #cbd5e1;
-}
-
-.meta {
-  margin: 0.25rem 0 0.75rem 0;
-  color: #94a3b8;
 }
 
 .event-buttons {
@@ -241,34 +89,20 @@ button:disabled {
   border-color: #1f8a6a;
 }
 
+/* keep readable even when disabled */
+.event-btn:disabled {
+  opacity: 0.9;
+}
+
 .choice-badge {
   min-width: 2.2rem;
   height: 2.2rem;
   border-radius: 999px;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  align-items: centre;
+  justify-content: centre;
   font-weight: 700;
   background: #0f172a;
   border: 1px solid #334155;
   color: #e5e7eb;
-}
-
-.row {
-  display: flex;
-  gap: 0.75rem;
-  margin: 1rem 0;
-}
-
-button.secondary {
-  background: #334155;
-}
-
-button:disabled {
-  opacity: 0.6;
-}
-
-.message {
-  margin: 0 0 0.75rem 0;
-  color: #cbd5e1;
 }
