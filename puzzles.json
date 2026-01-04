@@ -1,28 +1,151 @@
-{
+"2026-01-06": {
   "events": [
-    {
-      "text": "The Berlin Wall falls",
-      "order": 1
-    },
-    {
-      "text": "Google is founded",
-      "order": 2
-    },
-    {
-      "text": "Wikipedia launches",
-      "order": 3
-    },
-    {
-      "text": "Facebook opens to the public",
-      "order": 4
-    },
-    {
-      "text": "The first iPhone goes on sale",
-      "order": 5
-    },
-    {
-      "text": "Netflix launches streaming internationally",
-      "order": 6
-    }
+    { "text": "The first Harry Potter book is published", "order": 1 },
+    { "text": "The first Harry Potter film is released", "order": 2 },
+    { "text": "The first Lord of the Rings film (The Fellowship of the Ring) is released", "order": 3 },
+    { "text": "The first Marvel Cinematic Universe film (Iron Man) is released", "order": 4 },
+    { "text": "The first Game of Thrones episode airs", "order": 5 },
+    { "text": "The first Star Wars film (A New Hope) is released", "order": 6 }
   ]
 }
+
+"2026-01-07": {
+  "events": [
+    { "text": "Abraham Lincoln is born", "order": 1 },
+    { "text": "Ulysses S. Grant is born", "order": 2 },
+    { "text": "William McKinley is born", "order": 3 },
+    { "text": "Woodrow Wilson is born", "order": 4 },
+    { "text": "Theodore Roosevelt is born", "order": 5 },
+    { "text": "Franklin D. Roosevelt is born", "order": 6 }
+  ]
+}
+
+
+"2026-01-08": {
+  "events": [
+    { "text": "The Football Association is founded in England", "order": 1 },
+    { "text": "The first international football match is played", "order": 2 },
+    { "text": "FIFA is founded", "order": 3 },
+    { "text": "The first FIFA World Cup is held", "order": 4 },
+    { "text": "Pelé wins his first World Cup with Brazil", "order": 5 },
+    { "text": "The first FIFA Women’s World Cup is held", "order": 6 }
+  ]
+}
+
+
+"2026-01-09": {
+  "events": [
+    { "text": "Megalosaurus is scientifically described", "order": 1 },
+    { "text": "The term Dinosauria is coined", "order": 2 },
+    { "text": "The first Tyrannosaurus rex skeleton is discovered", "order": 3 },
+    { "text": "The first dinosaur eggs are discovered", "order": 4 },
+    { "text": "The asteroid impact theory for dinosaur extinction is proposed", "order": 5 },
+    { "text": "Jurassic Park is released", "order": 6 }
+  ]
+}
+
+
+"2026-01-10": {
+  "events": [
+    { "text": "Jaws is released", "order": 1 },
+    { "text": "Close Encounters of the Third Kind is released", "order": 2 },
+    { "text": "Raiders of the Lost Ark is released", "order": 3 },
+    { "text": "E.T. the Extra-Terrestrial is released", "order": 4 },
+    { "text": "Jurassic Park is released", "order": 5 },
+    { "text": "Schindler’s List is released", "order": 6 }
+  ]
+}
+
+
+
+"2026-01-12": {
+  "events": [
+    { "text": "Sputnik 1 is launched", "order": 1 },
+    { "text": "Yuri Gagarin becomes the first human in space", "order": 2 },
+    { "text": "Apollo 11 lands the first humans on the Moon", "order": 3 },
+    { "text": "Voyager 1 is launched", "order": 4 },
+    { "text": "The Hubble Space Telescope is launched", "order": 5 },
+    { "text": "The James Webb Space Telescope is launched", "order": 6 }
+  ]
+},
+"2026-01-13": {
+  "events": [
+    { "text": "IBM is founded", "order": 1 },
+    { "text": "Sony is founded", "order": 2 },
+    { "text": "Intel is founded", "order": 3 },
+    { "text": "Microsoft is founded", "order": 4 },
+    { "text": "Apple is founded", "order": 5 },
+    { "text": "Google is founded", "order": 6 }
+  ]
+},
+"2026-01-14": {
+  "events": [
+    { "text": "The modern Olympic Games begin (Athens)", "order": 1 },
+    { "text": "Women first compete in the Olympic Games", "order": 2 },
+    { "text": "The first Winter Olympic Games are held", "order": 3 },
+    { "text": "The Olympic flag is first flown at the Games", "order": 4 },
+    { "text": "The first televised Olympic Games are held", "order": 5 },
+    { "text": "The first Youth Olympic Games are held", "order": 6 }
+  ]
+},
+"2026-01-15": {
+  "events": [
+    { "text": "Alexander Fleming discovers penicillin", "order": 1 },
+    { "text": "The first successful human kidney transplant is performed", "order": 2 },
+    { "text": "The structure of DNA is described", "order": 3 },
+    { "text": "The first human heart transplant is performed", "order": 4 },
+    { "text": "The first test-tube baby is born", "order": 5 },
+    { "text": "The Human Genome Project is completed", "order": 6 }
+  ]
+},
+"2026-01-16": {
+  "events": [
+    { "text": "The Magna Carta is sealed", "order": 1 },
+    { "text": "The Treaty of Westphalia is signed", "order": 2 },
+    { "text": "The Treaty of Paris ends the American Revolutionary War", "order": 3 },
+    { "text": "The Treaty of Versailles is signed", "order": 4 },
+    { "text": "The United Nations is founded", "order": 5 },
+    { "text": "The Good Friday Agreement is signed", "order": 6 }
+  ]
+},
+"2026-01-17": {
+  "events": [
+    { "text": "The Atari 2600 is released", "order": 1 },
+    { "text": "The Nintendo Entertainment System (NES) is released", "order": 2 },
+    { "text": "The PlayStation is released", "order": 3 },
+    { "text": "The Nintendo 64 is released", "order": 4 },
+    { "text": "The Xbox is released", "order": 5 },
+    { "text": "The Nintendo Switch is released", "order": 6 }
+  ]
+},
+"2026-01-18": {
+  "events": [
+    { "text": "Mary Shelley publishes Frankenstein", "order": 1 },
+    { "text": "Charles Dickens publishes A Christmas Carol", "order": 2 },
+    { "text": "Lewis Carroll publishes Alice’s Adventures in Wonderland", "order": 3 },
+    { "text": "Bram Stoker publishes Dracula", "order": 4 },
+    { "text": "George Orwell publishes Nineteen Eighty-Four", "order": 5 },
+    { "text": "Harper Lee publishes To Kill a Mockingbird", "order": 6 }
+  ]
+},
+"2026-01-20": {
+  "events": [
+    { "text": "The Wright brothers achieve the first powered flight", "order": 1 },
+    { "text": "Charles Lindbergh completes the first solo nonstop transatlantic flight", "order": 2 },
+    { "text": "The first commercial jet airliner (de Havilland Comet) enters service", "order": 3 },
+    { "text": "Yuri Gagarin becomes the first human in space", "order": 4 },
+    { "text": "Concorde enters commercial service", "order": 5 },
+    { "text": "The first powered flight on another planet (Ingenuity on Mars) occurs", "order": 6 }
+  ]
+},
+"2026-01-19": {
+  "events": [
+    { "text": "The first modern Nobel Prizes are awarded", "order": 1 },
+    { "text": "The Academy Awards (Oscars) are first held", "order": 2 },
+    { "text": "The FIFA Ballon d’Or (Ballon d’Or) is first awarded", "order": 3 },
+    { "text": "The Grammy Awards are first held", "order": 4 },
+    { "text": "The Booker Prize is first awarded", "order": 5 },
+    { "text": "The Nobel Prize in Economic Sciences is first awarded", "order": 6 }
+  ]
+},
+
