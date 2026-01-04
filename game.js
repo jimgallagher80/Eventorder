@@ -175,7 +175,7 @@
       if (e.order === i + 1) return "🟩";
       const left = pick[i - 1];
       const right = pick[i + 1];
-      if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
+      if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟨";
       return "⬜";
     });
   }
