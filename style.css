@@ -13,29 +13,50 @@
   --card: #ffffff;
 
   --green: #16a34a;
+  --greenBright: #22c55e;
   --amber: #f59e0b;
   --greyDot: #e5e7eb;
+
+  /* Feedback tints */
+  --greenTint: #ecfdf5;
+  --amberTint: #fff7ed;
+  --whiteTint: #f8fafc;
+
+  /* iOS safe-area helpers */
+  --safeTop: env(safe-area-inset-top);
 }
 
 *{ box-sizing: border-box; }
+
+html, body{
+  margin: 0;
+  padding: 0;
+}
 
 body{
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg);
   color: var(--text);
-  margin: 0;
+  -webkit-text-size-adjust: 100%;
 }
 
+/* iOS tap ergonomics */
+button,
+.icon-btn,
+.menu-item{
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Header */
 .topbar{
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding-top: env(safe-area-inset-top);
-  height: calc(92px + env(safe-area-inset-top));
+  padding-top: var(--safeTop);
+  height: calc(92px + var(--safeTop));
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -72,12 +93,11 @@ body{
 
 .brand{
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: centre;
+  align-items: centre;
   padding-right: 68px; /* balances left buttons visually */
 }
 
-/* Double the logo size (no re-upload needed) */
 .logo{
   height: 64px;
   width: auto;
@@ -90,10 +110,11 @@ body{
   font-size: 22px;
 }
 
+/* Main layout */
 main{
   max-width: 680px;
   margin: 0 auto;
-  padding: calc(102px + env(safe-area-inset-top)) 14px 18px 14px;
+  padding: calc(102px + var(--safeTop)) 14px 18px 14px;
 }
 
 .buildline{
@@ -114,6 +135,7 @@ main{
   font-size: 14px;
 }
 
+/* Messages should stand out (not muted) */
 .message{
   margin: 0 0 0.75rem 0;
   color: var(--text);
@@ -144,6 +166,7 @@ main{
   line-height: 1.25;
   white-space: pre;
   overflow-x: auto;
+  color: var(--text);
 }
 
 .sharecol{
@@ -158,6 +181,7 @@ main{
   margin: 12px 0;
 }
 
+/* Buttons */
 button{
   width: 100%;
   padding: 12px;
@@ -184,6 +208,7 @@ button.share{
   border-color: var(--btn);
 }
 
+/* Event option buttons */
 .event-buttons{
   display: flex;
   flex-direction: column;
@@ -201,20 +226,26 @@ button.share{
   text-align: left;
 
   display: flex;
-  align-items: center;
+  align-items: centre;
   justify-content: space-between;
   gap: 10px;
+
+  /* make taps feel nicer */
+  min-height: 52px;
 }
 
+/* Selected (in current pick) */
 .event-btn.selected{
   border-color: #94a3b8;
   box-shadow: 0 0 0 2px rgba(148,163,184,0.25) inset;
 }
 
+/* Disabled should still be readable */
 .event-btn:disabled{
-  opacity: 0.75;
+  opacity: 0.78;
 }
 
+/* Choice badge */
 .choice-badge{
   min-width: 34px;
   width: 34px;
@@ -237,74 +268,54 @@ button.share{
   text-align: center;
 }
 
-/* Previous attempts */
-.history{
-  margin: 12px 0 2px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.history-title{
-  font-size: 13px;
-  color: var(--muted);
-  margin: 0 0 6px 0;
-}
-
-.attempt{
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 10px;
-  background: var(--panel);
-}
-
-.attempt-row{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.attempt-item{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-
-  padding: 10px 10px;
-  border-radius: 12px;
+/* Correct-position badge styling (light grey number) */
+.choice-badge.badge-correct{
+  color: #9ca3af;
+  border-color: #e5e7eb;
   background: #ffffff;
-  border: 1px solid var(--border);
 }
 
-.attempt-text{
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.25;
+/* -------------------------------------------------------
+   Hybrid feedback styling (THIS MATCHES YOUR JS CLASSES)
+   Thicker border + light tint
+------------------------------------------------------- */
+
+/* Default: no feedback */
+.event-btn.fb-white{
+  background: var(--whiteTint);
+  border: 3px solid #cbd5e1;
 }
 
-.dot{
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  flex: 0 0 auto;
+/* Partial / amber */
+.event-btn.fb-amber{
+  background: var(--amberTint);
+  border: 3px solid var(--amber);
 }
 
-.dot.green{ background: var(--green); border-color: var(--green); }
-.dot.amber{ background: var(--amber); border-color: var(--amber); }
-.dot.grey{ background: var(--greyDot); }
+/* Correct / green */
+.event-btn.fb-green{
+  background: var(--greenTint);
+  border: 3px solid var(--green);
+}
+
+/* Make the feedback border feel more “obvious” */
+.event-btn.fb-green,
+.event-btn.fb-amber,
+.event-btn.fb-white{
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.03);
+}
 
 /* Dropdown menu */
 .menu{
   position: fixed;
-  top: calc(92px + env(safe-area-inset-top));
+  top: calc(92px + var(--safeTop));
   left: 12px;
-  z-index: 60;
+  z-index: 2000;
   width: 180px;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
   padding: 6px;
 }
 
@@ -327,29 +338,30 @@ button.share{
 .modal{
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 3000;
 }
 
 .modal-backdrop{
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .modal-card{
   position: relative;
-  z-index: 101;
+  z-index: 3001;
   width: min(560px, calc(100% - 28px));
-  margin: calc(102px + env(safe-area-inset-top)) auto 0 auto;
+  margin: calc(102px + var(--safeTop)) auto 0 auto;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
 }
 
 .modal-header{
   display: flex;
-  align-items: center;
+  align-items: centre;
   justify-content: space-between;
   padding: 12px 12px;
   border-bottom: 1px solid var(--border);
@@ -377,6 +389,7 @@ button.share{
   font-size: 14px;
 }
 
+/* Dev toggle */
 .dev-panel{
   margin-top: 12px;
   border-top: 1px solid var(--border);
@@ -447,90 +460,5 @@ button.share{
   color: var(--muted);
 }
 
-:root{
-  --bg:#ffffff;
-  --text:#0f172a;
-  --muted:#475569;
-  --panel:#f8fafc;
-  --border:#e2e8f0;
-}
-
-body{
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* Make all the “secondary” text visible on white */
-.meta, .subtitle, .message, .buildline{
-  color: var(--muted);
-}
-
-/* Panels/grid */
-.panel{
-  background: var(--panel);
-  border: 1px solid var(--border);
-}
-.grid{
-  color: var(--text);
-  background: transparent;
-}
-
-/* Dropdown menu visibility */
-.menu{
-  background: #ffffff;
-  border: 1px solid var(--border);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
-  z-index: 2000;
-}
-
-/* Modal visibility & stacking */
-.modal{
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-}
-.modal-card{
-  background:#ffffff;
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
-}
-.modal-backdrop{
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-}
-
-.topbar { z-index: 1000; }
-.menu { z-index: 2000; }
-.modal { z-index: 3000; }
-
-/* Per-button feedback from last attempt */
-.event-btn.fb-green { border-color: #22c55e; }
-.event-btn.fb-amber { border-color: #f59e0b; }
-.event-btn.fb-white { border-color: #cbd5e1; }
-
-/* Correct-position badge styling (light grey number) */
-.choice-badge.badge-correct {
-  color: #9ca3af;
-  border-color: #e5e7eb;
-}
-
-#history { display: none !important; }
-
-
-/* Hybrid feedback styling: thicker border + light tint */
-.event-btn.correct {
-  background: #ecfdf5;
-  border: 3px solid #16a34a;
-}
-
-.event-btn.partial {
-  background: #fff7ed;
-  border: 3px solid #f59e0b;
-}
-
-.event-btn.incorrect {
-  background: #f8fafc;
-  border: 3px solid #cbd5e1;
-}
+/* Ensure old history area never shows if still present in HTML */
+#history{ display: none !important; }
