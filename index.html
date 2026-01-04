@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Order These — Beta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=110" />
+  <link rel="stylesheet" href="style.css?v=111" />
 </head>
 <body>
   <!-- Sticky top bar -->
@@ -55,7 +55,7 @@
       <div class="modal-body">
         <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
         <p>You have <strong>3 attempts</strong> per day. The game auto-submits on the 6th selection.</p>
-        <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ incorrect.</p>
+        <p><strong>Colours:</strong> 🟩 correct position, 🟨 close/partially ordered, 🟦 incorrect.</p>
 
         <div class="dev-panel">
           <div class="dev-title">Developer</div>
@@ -81,24 +81,23 @@
 
     <p id="message" class="message"></p>
 
+    <div id="event-buttons" class="event-buttons"></div>
+
+    <!-- Controls now BELOW selections -->
     <div class="row" id="controlsRow">
       <button id="undo" class="secondary" disabled>Undo</button>
       <button id="clear" class="secondary" disabled>Clear</button>
     </div>
 
-    <div id="event-buttons" class="event-buttons"></div>
-
-<div class="share-row">
-  <button id="share" class="share" style="display:none;">Share Results</button>
-</div>
-
-
-    <div id="event-buttons" class="event-buttons"></div>
+    <!-- Share centred at the bottom -->
+    <div class="share-row">
+      <button id="share" class="share" style="display:none;">Share Results</button>
+    </div>
 
     <!-- Footer -->
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <script src="game.js?v=110" defer></script>
+  <script src="game.js?v=111" defer></script>
 </body>
 </html>
