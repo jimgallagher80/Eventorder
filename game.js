@@ -1,14 +1,13 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.04 (Beta)
-  // - Sticky header simplified: logo always, build line scrolls
-  // - Bespoke PNG icons (with emoji fallbacks)
-  // - Dropdown menu (Archive/Feedback/About) opens new pages
-  // - Share button moves to right of grid after completion
-  // - Undo/Clear disappear after completion
-  // - Dev mode allows replay (no daily lock blocking) for testing
+  // v1.05 (Beta)
+  // - Adds Dev mode toggle in Info modal (replay while testing)
+  // - Sticky header: logo only; build line scrolls
+  // - PNG icon buttons with emoji fallbacks
+  // - Dropdown menu
+  // - Share button to the right after completion; Undo/Clear hidden after completion
 
-  const VERSION = "1.04";
+  const VERSION = "1.05";
   const LAST_UPDATED = new Date().toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
@@ -19,10 +18,12 @@
 
   const $ = (id) => document.getElementById(id);
 
-  // Dev mode: enable with ?dev=1 or localStorage flag orderthese:dev="true"
-  const DEV =
-    new URLSearchParams(window.location.search).get("dev") === "1" ||
-    localStorage.getItem("orderthese:dev") === "true";
+  // Dev mode:
+  // - one-off: ?dev=1
+  // - persistent: localStorage orderthese:dev="true"
+  const DEV_QUERY = new URLSearchParams(window.location.search).get("dev") === "1";
+  const DEV_PERSIST = localStorage.getItem("orderthese:dev") === "true";
+  const DEV = DEV_QUERY || DEV_PERSIST;
 
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -66,9 +67,9 @@
   const storageKey = `orderthese:${todayKey}`;
 
   let events = [];
-  let attempts = [];       // emoji rows (array of arrays)
-  let attemptPicks = [];   // picked event objects per attempt (for history)
-  let currentPick = [];    // indices into `events`
+  let attempts = [];
+  let attemptPicks = [];
+  let currentPick = [];
   let mistakes = 0;
   let gameOver = false;
 
@@ -78,7 +79,6 @@
   let puzzleDateKey = todayKey;
 
   function init() {
-    // Build line (scrolls)
     const buildLine = $("buildLine");
     if (buildLine) {
       buildLine.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}${DEV ? " · DEV mode" : ""}`;
@@ -86,8 +86,8 @@
 
     wireInfoModal();
     wireMenu();
+    wireDevToggle();
 
-    // Controls
     const undoBtn = $("undo");
     const clearBtn = $("clear");
     const shareBtn = $("share");
@@ -96,21 +96,23 @@
     if (clearBtn) clearBtn.addEventListener("click", clearAll);
     if (shareBtn) shareBtn.addEventListener("click", shareResults);
 
-    // Restore saved state unless dev mode wants replay
     if (loadState()) {
       setMeta();
+
       if (DEV && gameOver) {
-        // Allow replay while testing: auto-reset completed game
         resetForReplay();
-        setMessage("DEV mode: replay enabled. Tap 6 items in order.");
+        setMessage("Developer mode: replay enabled. Tap 6 items in order.");
       }
+
       renderAll();
+
       if (gameOver && !DEV) {
         setMessage("You’ve already completed today’s game.");
         finishGameUI();
       } else if (!gameOver && !DEV) {
         setMessage("Welcome back. Continue today’s game.");
       }
+
       return;
     }
 
@@ -296,14 +298,10 @@
   }
 
   function evaluateRow(pick) {
-    // 🟩: correct absolute position (1..6)
-    // 🟧: neighbour heuristic (kept as-is)
     return pick.map((e, i) => {
       if (e.order === i + 1) return "🟩";
-
       const left = pick[i - 1];
       const right = pick[i + 1];
-
       if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
       return "⬜";
     });
@@ -312,14 +310,7 @@
   function renderGrid() {
     const grid = $("grid");
     if (!grid) return;
-
-    if (attempts.length === 0) {
-      grid.textContent = "";
-      return;
-    }
-
-    // No spaces between emojis (on page and share)
-    grid.textContent = attempts.map(r => r.join("")).join("\n");
+    grid.textContent = attempts.length ? attempts.map(r => r.join("")).join("\n") : "";
   }
 
   function renderHistory() {
@@ -382,7 +373,7 @@
         await navigator.share({ text });
         return;
       } catch {
-        // fall back to clipboard
+        // fall back
       }
     }
 
@@ -403,13 +394,11 @@
     if (undoBtn) undoBtn.disabled = gameOver || currentPick.length === 0;
     if (clearBtn) clearBtn.disabled = gameOver || currentPick.length === 0;
 
-    // Share button appears to the right of the grid after completion
     if (shareBtn) {
       shareBtn.style.display = gameOver ? "inline-block" : "none";
       shareBtn.disabled = !gameOver;
     }
 
-    // Undo/Clear row disappears after completion
     if (controlsRow) {
       controlsRow.style.display = gameOver ? "none" : "flex";
     }
@@ -423,11 +412,8 @@
   function disableAllInputs() {
     gameOver = true;
     updateControls();
-
     const container = $("event-buttons");
-    if (container) {
-      [...container.querySelectorAll("button")].forEach(b => (b.disabled = true));
-    }
+    if (container) [...container.querySelectorAll("button")].forEach(b => (b.disabled = true));
   }
 
   function setMessage(text) {
@@ -435,7 +421,6 @@
     if (msg) msg.textContent = text;
   }
 
-  // Persistence
   function saveState() {
     try {
       const state = {
@@ -449,9 +434,7 @@
         gameOver
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
-    } catch {
-      // no-op
-    }
+    } catch {}
   }
 
   function loadState() {
@@ -478,7 +461,24 @@
     }
   }
 
-  // Info modal
+  function wireDevToggle() {
+    const toggle = $("devToggle");
+    if (!toggle) return;
+
+    // Checkbox reflects persistent dev mode only (query param is one-off)
+    toggle.checked = DEV_PERSIST;
+
+    toggle.addEventListener("change", () => {
+      if (toggle.checked) {
+        localStorage.setItem("orderthese:dev", "true");
+      } else {
+        localStorage.removeItem("orderthese:dev");
+      }
+      // reload so DEV mode status applies immediately
+      window.location.reload();
+    });
+  }
+
   function wireInfoModal() {
     const infoBtn = $("infoBtn");
     const modal = $("infoModal");
@@ -495,4 +495,40 @@
     backdrop.addEventListener("click", close);
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.hidden) close
+      if (e.key === "Escape" && !modal.hidden) close();
+    });
+  }
+
+  function wireMenu() {
+    const btn = $("menuBtn");
+    const menu = $("menuDropdown");
+    if (!btn || !menu) return;
+
+    const open = () => {
+      menu.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+    };
+    const close = () => {
+      menu.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    };
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (menu.hidden) open();
+      else close();
+    });
+
+    document.addEventListener("click", () => {
+      if (!menu.hidden) close();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !menu.hidden) close();
+    });
+
+    menu.addEventListener("click", (e) => e.stopPropagation());
+  }
+
+  init();
+})();
