@@ -1,13 +1,14 @@
 (() => {
-  // Event Order — daily click-to-select game.js
-  // v1.03 (Beta)
-  // - Fixed header build line (Beta vX + last updated)
-  // - Previous attempts show selected event texts lightly + coloured dot
-  // - Share grid has NO spaces between emojis
-  // - Smaller UI + white theme
-  // - Info modal
+  // Order These — daily click-to-select
+  // v1.04 (Beta)
+  // - Sticky header simplified: logo always, build line scrolls
+  // - Bespoke PNG icons (with emoji fallbacks)
+  // - Dropdown menu (Archive/Feedback/About) opens new pages
+  // - Share button moves to right of grid after completion
+  // - Undo/Clear disappear after completion
+  // - Dev mode allows replay (no daily lock blocking) for testing
 
-  const VERSION = "1.03";
+  const VERSION = "1.04";
   const LAST_UPDATED = new Date().toLocaleString("en-GB", {
     year: "numeric",
     month: "short",
@@ -17,6 +18,11 @@
   });
 
   const $ = (id) => document.getElementById(id);
+
+  // Dev mode: enable with ?dev=1 or localStorage flag orderthese:dev="true"
+  const DEV =
+    new URLSearchParams(window.location.search).get("dev") === "1" ||
+    localStorage.getItem("orderthese:dev") === "true";
 
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -57,12 +63,12 @@
 
   const today = startOfDay(new Date());
   const todayKey = isoDateKey(today);
-  const storageKey = `eventorder:${todayKey}`;
+  const storageKey = `orderthese:${todayKey}`;
 
-  let events = [];              // shuffled display order
-  let attempts = [];            // emoji rows (array of arrays)
-  let attemptPicks = [];        // array of arrays of picked event objects (for history)
-  let currentPick = [];         // indices into `events` in selection order
+  let events = [];
+  let attempts = [];       // emoji rows (array of arrays)
+  let attemptPicks = [];   // picked event objects per attempt (for history)
+  let currentPick = [];    // indices into `events`
   let mistakes = 0;
   let gameOver = false;
 
@@ -71,35 +77,15 @@
   let gameNumber = 1;
   let puzzleDateKey = todayKey;
 
-  // Modal wiring
-  function wireInfoModal() {
-    const infoBtn = $("infoBtn");
-    const modal = $("infoModal");
-    const closeBtn = $("closeInfoBtn");
-    const backdrop = $("modalBackdrop");
-
-    if (!infoBtn || !modal || !closeBtn || !backdrop) return;
-
-    const open = () => { modal.hidden = false; };
-    const close = () => { modal.hidden = true; };
-
-    infoBtn.addEventListener("click", open);
-    closeBtn.addEventListener("click", close);
-    backdrop.addEventListener("click", close);
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.hidden) close();
-    });
-  }
-
   function init() {
-    // Build line
+    // Build line (scrolls)
     const buildLine = $("buildLine");
     if (buildLine) {
-      buildLine.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
+      buildLine.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}${DEV ? " · DEV mode" : ""}`;
     }
 
     wireInfoModal();
+    wireMenu();
 
     // Controls
     const undoBtn = $("undo");
@@ -110,26 +96,39 @@
     if (clearBtn) clearBtn.addEventListener("click", clearAll);
     if (shareBtn) shareBtn.addEventListener("click", shareResults);
 
-    // Restore today's saved game first
+    // Restore saved state unless dev mode wants replay
     if (loadState()) {
       setMeta();
+      if (DEV && gameOver) {
+        // Allow replay while testing: auto-reset completed game
+        resetForReplay();
+        setMessage("DEV mode: replay enabled. Tap 6 items in order.");
+      }
       renderAll();
-      if (gameOver) {
+      if (gameOver && !DEV) {
         setMessage("You’ve already completed today’s game.");
         finishGameUI();
-      } else {
+      } else if (!gameOver && !DEV) {
         setMessage("Welcome back. Continue today’s game.");
       }
       return;
     }
 
-    // Otherwise load today's puzzle
     loadPuzzleForToday();
+  }
+
+  function resetForReplay() {
+    attempts = [];
+    attemptPicks = [];
+    currentPick = [];
+    mistakes = 0;
+    gameOver = false;
+    saveState();
   }
 
   async function loadPuzzleForToday() {
     try {
-      setMessage("Loading today’s events…");
+      setMessage("Loading today’s items…");
 
       const res = await fetch("./puzzles.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
@@ -144,17 +143,14 @@
       puzzleDateKey = todayKey;
 
       const puzzle = data[puzzleDateKey];
+      gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
+      setMeta();
+
       if (!puzzle || !Array.isArray(puzzle.events) || puzzle.events.length !== 6) {
-        // Still compute game number so header reads properly if you’re before/after range
-        gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
-        setMeta();
         setMessage("No puzzle published for today yet.");
         disableAllInputs();
         return;
       }
-
-      gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
-      setMeta();
 
       events = shuffle([...puzzle.events]);
       attempts = [];
@@ -165,10 +161,10 @@
 
       saveState();
       renderAll();
-      setMessage("Tap 6 events in order.");
+      setMessage("Tap 6 items in order.");
     } catch (err) {
       console.error(err);
-      setMessage("Couldn’t load today’s events. Please refresh and try again.");
+      setMessage("Couldn’t load today’s puzzle. Please refresh and try again.");
       disableAllInputs();
     }
   }
@@ -252,7 +248,7 @@
 
     renderEventButtons();
     updateControls();
-    setMessage("Cleared. Tap 6 events in order.");
+    setMessage("Cleared. Tap 6 items in order.");
   }
 
   function submitAttempt() {
@@ -275,7 +271,7 @@
     if (solved) {
       gameOver = true;
       saveState();
-      setMessage("Congratulations — you solved today’s Event Order.");
+      setMessage("Solved.");
       finishGameUI();
       return;
     }
@@ -301,7 +297,7 @@
 
   function evaluateRow(pick) {
     // 🟩: correct absolute position (1..6)
-    // 🟧: your "neighbour" heuristic (kept as-is)
+    // 🟧: neighbour heuristic (kept as-is)
     return pick.map((e, i) => {
       if (e.order === i + 1) return "🟩";
 
@@ -322,7 +318,7 @@
       return;
     }
 
-    // No spaces between emojis (both on-page and share)
+    // No spaces between emojis (on page and share)
     grid.textContent = attempts.map(r => r.join("")).join("\n");
   }
 
@@ -335,7 +331,7 @@
 
     const title = document.createElement("p");
     title.className = "history-title";
-    title.textContent = "Previous attempts (your selected events)";
+    title.textContent = "Previous attempts (your selected items)";
     history.appendChild(title);
 
     attemptPicks.forEach((pick, attemptIdx) => {
@@ -373,7 +369,7 @@
   }
 
   function buildShareText() {
-    return `Event Order\nGame #${gameNumber}\n` + attempts.map(r => r.join("")).join("\n");
+    return `Order These\nGame #${gameNumber}\n` + attempts.map(r => r.join("")).join("\n");
   }
 
   async function shareResults() {
@@ -394,21 +390,28 @@
       await navigator.clipboard.writeText(text);
       setMessage("Results copied — you can paste them anywhere.");
     } catch {
-      setMessage("Couldn’t share automatically. Select and copy the grid above.");
+      setMessage("Couldn’t share automatically. Select and copy the grid.");
     }
   }
 
   function updateControls() {
     const undoBtn = $("undo");
     const clearBtn = $("clear");
+    const shareBtn = $("share");
+    const controlsRow = $("controlsRow");
 
     if (undoBtn) undoBtn.disabled = gameOver || currentPick.length === 0;
     if (clearBtn) clearBtn.disabled = gameOver || currentPick.length === 0;
 
-    const shareBtn = $("share");
+    // Share button appears to the right of the grid after completion
     if (shareBtn) {
       shareBtn.style.display = gameOver ? "inline-block" : "none";
       shareBtn.disabled = !gameOver;
+    }
+
+    // Undo/Clear row disappears after completion
+    if (controlsRow) {
+      controlsRow.style.display = gameOver ? "none" : "flex";
     }
   }
 
@@ -419,14 +422,7 @@
 
   function disableAllInputs() {
     gameOver = true;
-
-    const undoBtn = $("undo");
-    const clearBtn = $("clear");
-    const shareBtn = $("share");
-
-    if (undoBtn) undoBtn.disabled = true;
-    if (clearBtn) clearBtn.disabled = true;
-    if (shareBtn) shareBtn.style.display = "none";
+    updateControls();
 
     const container = $("event-buttons");
     if (container) {
@@ -439,6 +435,7 @@
     if (msg) msg.textContent = text;
   }
 
+  // Persistence
   function saveState() {
     try {
       const state = {
@@ -481,5 +478,21 @@
     }
   }
 
-  init();
-})();
+  // Info modal
+  function wireInfoModal() {
+    const infoBtn = $("infoBtn");
+    const modal = $("infoModal");
+    const closeBtn = $("closeInfoBtn");
+    const backdrop = $("modalBackdrop");
+
+    if (!infoBtn || !modal || !closeBtn || !backdrop) return;
+
+    const open = () => { modal.hidden = false; };
+    const close = () => { modal.hidden = true; };
+
+    infoBtn.addEventListener("click", open);
+    closeBtn.addEventListener("click", close);
+    backdrop.addEventListener("click", close);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.hidden) close
