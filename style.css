@@ -504,3 +504,15 @@ body{
 .topbar { z-index: 1000; }
 .menu { z-index: 2000; }
 .modal { z-index: 3000; }
+
+/* Per-button feedback from last attempt */
+.event-btn.fb-green { border-color: #22c55e; }
+.event-btn.fb-amber { border-color: #f59e0b; }
+.event-btn.fb-white { border-color: #cbd5e1; }
+
+/* Correct-position badge styling (light grey number) */
+.choice-badge.badge-correct {
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
