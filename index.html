@@ -4,10 +4,9 @@
   <meta charset="UTF-8" />
   <title>Order These — Beta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=108" />
+  <link rel="stylesheet" href="style.css?v=109" />
 </head>
 <body>
-
   <!-- Sticky top bar -->
   <header class="topbar">
     <div class="left-actions">
@@ -77,13 +76,13 @@
 
   <!-- Main content -->
   <main>
-    <p id="buildLine" class="buildline"></p>
     <p id="meta" class="meta"></p>
-    <p class="subtitle">Tap the items in order (earliest → latest).</p>
+    <p class="subtitle">Put these in order.</p>
 
     <p id="message" class="message"></p>
 
-    <div class="panel">
+    <!-- Hidden until first attempt -->
+    <div class="panel" id="gridPanel" style="display:none;">
       <pre id="grid" class="grid"></pre>
     </div>
 
@@ -97,9 +96,12 @@
     </div>
 
     <div id="event-buttons" class="event-buttons"></div>
+
+    <!-- Build line moved to bottom -->
+    <p id="buildLine" class="buildline"></p>
   </main>
 
   <!-- Cache-busted JS -->
-  <script src="game.js?v=108" defer></script>
+  <script src="game.js?v=109" defer></script>
 </body>
 </html>
