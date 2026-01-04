@@ -1,172 +1,172 @@
 {
   "2026-01-04": {
     "events": [
-      { "text": "Abraham Lincoln is born", "order": 1 },
-      { "text": "Ulysses S. Grant is born", "order": 2 },
-      { "text": "William McKinley is born", "order": 3 },
-      { "text": "Woodrow Wilson is born", "order": 4 },
-      { "text": "Theodore Roosevelt is born", "order": 5 },
-      { "text": "Franklin D. Roosevelt is born", "order": 6 }
+      { "text": "Abraham Lincoln is born", "value": "12 Feb 1809", "order": 1 },
+      { "text": "Ulysses S. Grant is born", "value": "27 Apr 1822", "order": 2 },
+      { "text": "William McKinley is born", "value": "29 Jan 1843", "order": 3 },
+      { "text": "Woodrow Wilson is born", "value": "28 Dec 1856", "order": 4 },
+      { "text": "Theodore Roosevelt is born", "value": "27 Oct 1858", "order": 5 },
+      { "text": "Franklin D. Roosevelt is born", "value": "30 Jan 1882", "order": 6 }
     ]
   },
   "2026-01-05": {
     "events": [
-      { "text": "The Football Association is founded in England", "order": 1 },
-      { "text": "The first international football match is played", "order": 2 },
-      { "text": "FIFA is founded", "order": 3 },
-      { "text": "The first FIFA World Cup is held", "order": 4 },
-      { "text": "Pelé wins his first World Cup with Brazil", "order": 5 },
-      { "text": "The first FIFA Women’s World Cup is held", "order": 6 }
+      { "text": "The Football Association is founded in England", "value": "26 Oct 1863", "order": 1 },
+      { "text": "The first international football match is played", "value": "30 Nov 1872", "order": 2 },
+      { "text": "FIFA is founded", "value": "21 May 1904", "order": 3 },
+      { "text": "The first FIFA World Cup is held", "value": "13 Jul 1930", "order": 4 },
+      { "text": "Pelé wins his first World Cup with Brazil", "value": "29 Jun 1958", "order": 5 },
+      { "text": "The first FIFA Women’s World Cup is held", "value": "16 Nov 1991", "order": 6 }
     ]
   },
   "2026-01-06": {
     "events": [
-      { "text": "Megalosaurus is scientifically described", "order": 1 },
-      { "text": "The term Dinosauria is coined", "order": 2 },
-      { "text": "The first Tyrannosaurus rex skeleton is discovered", "order": 3 },
-      { "text": "The first dinosaur eggs are discovered", "order": 4 },
-      { "text": "The asteroid impact theory for dinosaur extinction is proposed", "order": 5 },
-      { "text": "Jurassic Park is released", "order": 6 }
+      { "text": "Megalosaurus is scientifically described", "value": "20 Feb 1824", "order": 1 },
+      { "text": "The term Dinosauria is coined", "value": "Apr 1842", "order": 2 },
+      { "text": "The first Tyrannosaurus rex skeleton is discovered", "value": "1902", "order": 3 },
+      { "text": "The first dinosaur eggs are discovered", "value": "1923", "order": 4 },
+      { "text": "The asteroid impact theory for dinosaur extinction is proposed", "value": "1980", "order": 5 },
+      { "text": "Jurassic Park is released", "value": "11 Jun 1993", "order": 6 }
     ]
   },
   "2026-01-07": {
     "events": [
-      { "text": "Jaws is released", "order": 1 },
-      { "text": "Close Encounters of the Third Kind is released", "order": 2 },
-      { "text": "Raiders of the Lost Ark is released", "order": 3 },
-      { "text": "E.T. the Extra-Terrestrial is released", "order": 4 },
-      { "text": "Jurassic Park is released", "order": 5 },
-      { "text": "Schindler’s List is released", "order": 6 }
+      { "text": "Jaws is released", "value": "20 Jun 1975", "order": 1 },
+      { "text": "Close Encounters of the Third Kind is released", "value": "16 Nov 1977", "order": 2 },
+      { "text": "Raiders of the Lost Ark is released", "value": "12 Jun 1981", "order": 3 },
+      { "text": "E.T. the Extra-Terrestrial is released", "value": "11 Jun 1982", "order": 4 },
+      { "text": "Jurassic Park is released", "value": "11 Jun 1993", "order": 5 },
+      { "text": "Schindler’s List is released", "value": "15 Dec 1993", "order": 6 }
     ]
   },
   "2026-01-08": {
     "events": [
-      { "text": "Sputnik 1 is launched", "order": 1 },
-      { "text": "Yuri Gagarin becomes the first human in space", "order": 2 },
-      { "text": "Apollo 11 lands the first humans on the Moon", "order": 3 },
-      { "text": "Voyager 1 is launched", "order": 4 },
-      { "text": "The Hubble Space Telescope is launched", "order": 5 },
-      { "text": "The James Webb Space Telescope is launched", "order": 6 }
+      { "text": "Sputnik 1 is launched", "value": "04 Oct 1957", "order": 1 },
+      { "text": "Yuri Gagarin becomes the first human in space", "value": "12 Apr 1961", "order": 2 },
+      { "text": "Apollo 11 lands the first humans on the Moon", "value": "20 Jul 1969", "order": 3 },
+      { "text": "Voyager 1 is launched", "value": "05 Sep 1977", "order": 4 },
+      { "text": "The Hubble Space Telescope is launched", "value": "24 Apr 1990", "order": 5 },
+      { "text": "The James Webb Space Telescope is launched", "value": "25 Dec 2021", "order": 6 }
     ]
   },
   "2026-01-09": {
     "events": [
-      { "text": "IBM is founded", "order": 1 },
-      { "text": "Sony is founded", "order": 2 },
-      { "text": "Intel is founded", "order": 3 },
-      { "text": "Microsoft is founded", "order": 4 },
-      { "text": "Apple is founded", "order": 5 },
-      { "text": "Google is founded", "order": 6 }
+      { "text": "IBM is founded", "value": "16 Jun 1911", "order": 1 },
+      { "text": "Sony is founded", "value": "07 May 1946", "order": 2 },
+      { "text": "Intel is founded", "value": "18 Jul 1968", "order": 3 },
+      { "text": "Microsoft is founded", "value": "04 Apr 1975", "order": 4 },
+      { "text": "Apple is founded", "value": "01 Apr 1976", "order": 5 },
+      { "text": "Google is founded", "value": "04 Sep 1998", "order": 6 }
     ]
   },
   "2026-01-10": {
     "events": [
-      { "text": "The modern Olympic Games begin (Athens)", "order": 1 },
-      { "text": "Women first compete in the Olympic Games", "order": 2 },
-      { "text": "The first Winter Olympic Games are held", "order": 3 },
-      { "text": "The Olympic flag is first flown at the Games", "order": 4 },
-      { "text": "The first televised Olympic Games are held", "order": 5 },
-      { "text": "The first Youth Olympic Games are held", "order": 6 }
+      { "text": "The modern Olympic Games begin (Athens)", "value": "06 Apr 1896", "order": 1 },
+      { "text": "Women first compete in the Olympic Games", "value": "May 1900", "order": 2 },
+      { "text": "The first Winter Olympic Games are held", "value": "25 Jan 1924", "order": 3 },
+      { "text": "The Olympic flag is first flown at the Games", "value": "20 Apr 1920", "order": 4 },
+      { "text": "The first televised Olympic Games are held", "value": "01 Aug 1936", "order": 5 },
+      { "text": "The first Youth Olympic Games are held", "value": "14 Aug 2010", "order": 6 }
     ]
   },
   "2026-01-11": {
     "events": [
-      { "text": "Alexander Fleming discovers penicillin", "order": 1 },
-      { "text": "The first successful human kidney transplant is performed", "order": 2 },
-      { "text": "The structure of DNA is described", "order": 3 },
-      { "text": "The first human heart transplant is performed", "order": 4 },
-      { "text": "The first test-tube baby is born", "order": 5 },
-      { "text": "The Human Genome Project is completed", "order": 6 }
+      { "text": "Alexander Fleming discovers penicillin", "value": "28 Sep 1928", "order": 1 },
+      { "text": "The first successful human kidney transplant is performed", "value": "23 Dec 1954", "order": 2 },
+      { "text": "The structure of DNA is described", "value": "25 Apr 1953", "order": 3 },
+      { "text": "The first human heart transplant is performed", "value": "03 Dec 1967", "order": 4 },
+      { "text": "The first test-tube baby is born", "value": "25 Jul 1978", "order": 5 },
+      { "text": "The Human Genome Project is completed", "value": "14 Apr 2003", "order": 6 }
     ]
   },
   "2026-01-12": {
     "events": [
-      { "text": "The Magna Carta is sealed", "order": 1 },
-      { "text": "The Treaty of Westphalia is signed", "order": 2 },
-      { "text": "The Treaty of Paris ends the American Revolutionary War", "order": 3 },
-      { "text": "The Treaty of Versailles is signed", "order": 4 },
-      { "text": "The United Nations is founded", "order": 5 },
-      { "text": "The Good Friday Agreement is signed", "order": 6 }
+      { "text": "The Magna Carta is sealed", "value": "15 Jun 1215", "order": 1 },
+      { "text": "The Treaty of Westphalia is signed", "value": "24 Oct 1648", "order": 2 },
+      { "text": "The Treaty of Paris ends the American Revolutionary War", "value": "03 Sep 1783", "order": 3 },
+      { "text": "The Treaty of Versailles is signed", "value": "28 Jun 1919", "order": 4 },
+      { "text": "The United Nations is founded", "value": "24 Oct 1945", "order": 5 },
+      { "text": "The Good Friday Agreement is signed", "value": "10 Apr 1998", "order": 6 }
     ]
   },
   "2026-01-13": {
     "events": [
-      { "text": "The Atari 2600 is released", "order": 1 },
-      { "text": "The Nintendo Entertainment System (NES) is released", "order": 2 },
-      { "text": "The PlayStation is released", "order": 3 },
-      { "text": "The Nintendo 64 is released", "order": 4 },
-      { "text": "The Xbox is released", "order": 5 },
-      { "text": "The Nintendo Switch is released", "order": 6 }
+      { "text": "The Atari 2600 is released", "value": "Sep 1977", "order": 1 },
+      { "text": "The Nintendo Entertainment System (NES) is released", "value": "15 Jul 1983", "order": 2 },
+      { "text": "The PlayStation is released", "value": "03 Dec 1994", "order": 3 },
+      { "text": "The Nintendo 64 is released", "value": "23 Jun 1996", "order": 4 },
+      { "text": "The Xbox is released", "value": "15 Nov 2001", "order": 5 },
+      { "text": "The Nintendo Switch is released", "value": "03 Mar 2017", "order": 6 }
     ]
   },
   "2026-01-14": {
     "events": [
-      { "text": "Mary Shelley publishes Frankenstein", "order": 1 },
-      { "text": "Charles Dickens publishes A Christmas Carol", "order": 2 },
-      { "text": "Lewis Carroll publishes Alice’s Adventures in Wonderland", "order": 3 },
-      { "text": "Bram Stoker publishes Dracula", "order": 4 },
-      { "text": "George Orwell publishes Nineteen Eighty-Four", "order": 5 },
-      { "text": "Harper Lee publishes To Kill a Mockingbird", "order": 6 }
+      { "text": "Mary Shelley publishes Frankenstein", "value": "01 Jan 1818", "order": 1 },
+      { "text": "Charles Dickens publishes A Christmas Carol", "value": "19 Dec 1843", "order": 2 },
+      { "text": "Lewis Carroll publishes Alice’s Adventures in Wonderland", "value": "26 Nov 1865", "order": 3 },
+      { "text": "Bram Stoker publishes Dracula", "value": "26 May 1897", "order": 4 },
+      { "text": "George Orwell publishes Nineteen Eighty-Four", "value": "08 Jun 1949", "order": 5 },
+      { "text": "Harper Lee publishes To Kill a Mockingbird", "value": "11 Jul 1960", "order": 6 }
     ]
   },
   "2026-01-15": {
     "events": [
-      { "text": "The first modern Nobel Prizes are awarded", "order": 1 },
-      { "text": "The Academy Awards (Oscars) are first held", "order": 2 },
-      { "text": "The FIFA Ballon d’Or (Ballon d’Or) is first awarded", "order": 3 },
-      { "text": "The Grammy Awards are first held", "order": 4 },
-      { "text": "The Booker Prize is first awarded", "order": 5 },
-      { "text": "The Nobel Prize in Economic Sciences is first awarded", "order": 6 }
+      { "text": "The first modern Nobel Prizes are awarded", "value": "10 Dec 1901", "order": 1 },
+      { "text": "The Academy Awards (Oscars) are first held", "value": "16 May 1929", "order": 2 },
+      { "text": "The FIFA Ballon d’Or (Ballon d’Or) is first awarded", "value": "1956", "order": 3 },
+      { "text": "The Grammy Awards are first held", "value": "04 May 1959", "order": 4 },
+      { "text": "The Booker Prize is first awarded", "value": "1969", "order": 5 },
+      { "text": "The Nobel Prize in Economic Sciences is first awarded", "value": "10 Dec 1969", "order": 6 }
     ]
   },
   "2026-01-16": {
     "events": [
-      { "text": "The Wright brothers achieve the first powered flight", "order": 1 },
-      { "text": "Charles Lindbergh completes the first solo nonstop transatlantic flight", "order": 2 },
-      { "text": "The first commercial jet airliner (de Havilland Comet) enters service", "order": 3 },
-      { "text": "Yuri Gagarin becomes the first human in space", "order": 4 },
-      { "text": "Concorde enters commercial service", "order": 5 },
-      { "text": "The first powered flight on another planet (Ingenuity on Mars) occurs", "order": 6 }
+      { "text": "The Wright brothers achieve the first powered flight", "value": "17 Dec 1903", "order": 1 },
+      { "text": "Charles Lindbergh completes the first solo nonstop transatlantic flight", "value": "21 May 1927", "order": 2 },
+      { "text": "The first commercial jet airliner (de Havilland Comet) enters service", "value": "02 May 1952", "order": 3 },
+      { "text": "Yuri Gagarin becomes the first human in space", "value": "12 Apr 1961", "order": 4 },
+      { "text": "Concorde enters commercial service", "value": "21 Jan 1976", "order": 5 },
+      { "text": "The first powered flight on another planet (Ingenuity on Mars) occurs", "value": "19 Apr 2021", "order": 6 }
     ]
   },
   "2026-01-17": {
     "events": [
-      { "text": "Star Trek: The Original Series premieres", "order": 1 },
-      { "text": "Star Trek: The Animated Series premieres", "order": 2 },
-      { "text": "Star Trek: The Next Generation premieres", "order": 3 },
-      { "text": "Star Trek: Deep Space Nine premieres", "order": 4 },
-      { "text": "Star Trek: Voyager premieres", "order": 5 },
-      { "text": "Star Trek: Enterprise premieres", "order": 6 }
+      { "text": "Star Trek: The Original Series premieres", "value": "08 Sep 1966", "order": 1 },
+      { "text": "Star Trek: The Animated Series premieres", "value": "08 Sep 1973", "order": 2 },
+      { "text": "Star Trek: The Next Generation premieres", "value": "28 Sep 1987", "order": 3 },
+      { "text": "Star Trek: Deep Space Nine premieres", "value": "03 Jan 1993", "order": 4 },
+      { "text": "Star Trek: Voyager premieres", "value": "16 Jan 1995", "order": 5 },
+      { "text": "Star Trek: Enterprise premieres", "value": "26 Sep 2001", "order": 6 }
     ]
   },
   "2026-01-18": {
     "events": [
-      { "text": "Michael Faraday discovers electromagnetic induction", "order": 1 },
-      { "text": "John Snow links cholera to contaminated water (Broad Street pump)", "order": 2 },
-      { "text": "Gregor Mendel publishes his work on inheritance", "order": 3 },
-      { "text": "Dmitri Mendeleev publishes the periodic table", "order": 4 },
-      { "text": "Wilhelm Röntgen discovers X-rays", "order": 5 },
-      { "text": "Marie and Pierre Curie discover polonium and radium", "order": 6 }
+      { "text": "Michael Faraday discovers electromagnetic induction", "value": "29 Aug 1831", "order": 1 },
+      { "text": "John Snow links cholera to contaminated water (Broad Street pump)", "value": "Sep 1854", "order": 2 },
+      { "text": "Gregor Mendel publishes his work on inheritance", "value": "1866", "order": 3 },
+      { "text": "Dmitri Mendeleev publishes the periodic table", "value": "06 Mar 1869", "order": 4 },
+      { "text": "Wilhelm Röntgen discovers X-rays", "value": "08 Nov 1895", "order": 5 },
+      { "text": "Marie and Pierre Curie discover polonium and radium", "value": "1898", "order": 6 }
     ]
   },
   "2026-01-19": {
     "events": [
-      { "text": "Superman: The Movie is released", "order": 1 },
-      { "text": "Batman is released", "order": 2 },
-      { "text": "X-Men is released", "order": 3 },
-      { "text": "Spider-Man is released", "order": 4 },
-      { "text": "Iron Man is released", "order": 5 },
-      { "text": "Marvel’s The Avengers is released", "order": 6 }
+      { "text": "Superman: The Movie is released", "value": "15 Dec 1978", "order": 1 },
+      { "text": "Batman is released", "value": "23 Jun 1989", "order": 2 },
+      { "text": "X-Men is released", "value": "14 Jul 2000", "order": 3 },
+      { "text": "Spider-Man is released", "value": "03 May 2002", "order": 4 },
+      { "text": "Iron Man is released", "value": "02 May 2008", "order": 5 },
+      { "text": "Marvel’s The Avengers is released", "value": "04 May 2012", "order": 6 }
     ]
   },
   "2026-01-20": {
     "events": [
-      { "text": "ENIAC is unveiled", "order": 1 },
-      { "text": "The transistor is invented", "order": 2 },
-      { "text": "The integrated circuit is invented", "order": 3 },
-      { "text": "ARPANET sends its first message", "order": 4 },
-      { "text": "IBM launches the IBM PC", "order": 5 },
-      { "text": "Apple releases the first iPhone", "order": 6 }
+      { "text": "ENIAC is unveiled", "value": "14 Feb 1946", "order": 1 },
+      { "text": "The transistor is invented", "value": "23 Dec 1947", "order": 2 },
+      { "text": "The integrated circuit is invented", "value": "12 Sep 1958", "order": 3 },
+      { "text": "ARPANET sends its first message", "value": "29 Oct 1969", "order": 4 },
+      { "text": "IBM launches the IBM PC", "value": "12 Aug 1981", "order": 5 },
+      { "text": "Apple releases the first iPhone", "value": "29 Jun 2007", "order": 6 }
     ]
   }
 }
