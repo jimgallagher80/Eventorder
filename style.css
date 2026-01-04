@@ -35,63 +35,75 @@ body{
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   padding-top: env(safe-area-inset-top);
-  height: calc(64px + env(safe-area-inset-top));
+  height: calc(92px + env(safe-area-inset-top));
   display: grid;
-  grid-template-columns: 56px 1fr 56px;
+  grid-template-columns: auto 1fr;
   align-items: center;
+}
+
+.left-actions{
+  display: flex;
+  gap: 10px;
+  padding-left: 12px;
 }
 
 .icon-btn{
   width: 44px;
   height: 44px;
-  margin-left: 10px;
   border: 1px solid var(--border);
   background: var(--panel);
   border-radius: 12px;
-  font-size: 18px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.topbar-spacer{
-  width: 56px;
-  height: 44px;
+.icon-img{
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.icon-fallback{
+  font-size: 18px;
+  line-height: 1;
 }
 
 .brand{
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 2px;
-  text-align: center;
-  line-height: 1.1;
+  align-items: center;
+  padding-right: 68px; /* balances left buttons visually */
 }
 
+/* Double the logo size (no re-upload needed) */
 .logo{
-  height: 32px;
+  height: 64px;
   width: auto;
+  max-width: 100%;
   display: block;
 }
 
 .logo-text{
   font-weight: 800;
-  letter-spacing: 0.2px;
-  font-size: 18px;
+  font-size: 22px;
+}
+
+main{
+  max-width: 680px;
+  margin: 0 auto;
+  padding: calc(102px + env(safe-area-inset-top)) 14px 18px 14px;
 }
 
 .buildline{
+  margin: 6px 0 8px 0;
   font-size: 12px;
   color: var(--muted);
 }
 
-main{
-  max-width: 640px;
-  margin: 0 auto;
-  padding: calc(84px + env(safe-area-inset-top)) 14px 18px 14px;
-}
-
 .meta{
-  margin: 0.25rem 0 0.5rem 0;
+  margin: 0.25rem 0 0.4rem 0;
   color: var(--muted);
   font-size: 14px;
 }
@@ -106,6 +118,13 @@ main{
   margin: 0 0 0.75rem 0;
   color: var(--text);
   font-size: 14px;
+}
+
+.gridwrap{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
 }
 
 .panel{
@@ -125,6 +144,12 @@ main{
   line-height: 1.25;
   white-space: pre;
   overflow-x: auto;
+}
+
+.sharecol{
+  min-width: 92px;
+  display: flex;
+  align-items: stretch;
 }
 
 .row{
@@ -156,6 +181,7 @@ button.secondary{
 button.share{
   background: var(--btn);
   color: var(--btnText);
+  border-color: var(--btn);
 }
 
 .event-buttons{
@@ -211,6 +237,7 @@ button.share{
   text-align: center;
 }
 
+/* Previous attempts */
 .history{
   margin: 12px 0 2px 0;
   display: flex;
@@ -267,6 +294,33 @@ button.share{
 .dot.amber{ background: var(--amber); border-color: var(--amber); }
 .dot.grey{ background: var(--greyDot); }
 
+/* Dropdown menu */
+.menu{
+  position: fixed;
+  top: calc(92px + env(safe-area-inset-top));
+  left: 12px;
+  z-index: 60;
+  width: 180px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  padding: 6px;
+}
+
+.menu-item{
+  display: block;
+  padding: 10px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.menu-item:hover{
+  background: var(--panel);
+}
+
 /* Modal */
 .modal[hidden]{ display: none; }
 
@@ -286,7 +340,7 @@ button.share{
   position: relative;
   z-index: 101;
   width: min(560px, calc(100% - 28px));
-  margin: calc(84px + env(safe-area-inset-top)) auto 0 auto;
+  margin: calc(102px + env(safe-area-inset-top)) auto 0 auto;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 16px;
