@@ -182,19 +182,23 @@
   }
 
   function renderGrid() {
-    const grid = $("grid");
-    if (!grid) return;
+  const grid = $("grid");
+  if (!grid) return;
 
-    if (attempts.length === 0) {
-      grid.textContent = "";
-      return;
-    }
-    grid.textContent = buildShareText();
+  if (attempts.length === 0) {
+    grid.textContent = "";
+    return;
   }
+
+  // On-page grid: emoji rows only (no title / no game number)
+  grid.textContent = attempts.map(r => r.join(" ")).join("\n");
+}
+
 
   function buildShareText() {
-    return `Event Order\nGame #${gameNumber}\n` + attempts.map(r => r.join(" ")).join("\n");
-  }
+  return `Event Order\nGame #${gameNumber}\n` + attempts.map(r => r.join(" ")).join("\n");
+}
+
 
   async function shareResults() {
     const text = buildShareText();
