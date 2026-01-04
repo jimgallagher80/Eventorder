@@ -88,3 +88,62 @@ pre {
   color: #94a3b8;
   font-size: 0.95rem;
 }
+
+.panel {
+  background: #111c33;
+  border: 1px solid #223255;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: #cbd5e1;
+}
+
+.event-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.event-btn {
+  text-align: left;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.85rem;
+  color: #e5e7eb;
+  font-size: 1rem;
+}
+
+.event-btn:disabled {
+  opacity: 0.55;
+}
+
+.pick-list {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+}
+
+.pick-list li {
+  padding: 0.35rem 0;
+  color: #e5e7eb;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+button.secondary {
+  background: #334155;
+}
+
+.message {
+  margin: 0.75rem 0 0 0;
+  color: #cbd5e1;
+}
