@@ -12,26 +12,52 @@ fetch("puzzles.json")
 function render() {
   const list = document.getElementById("event-list");
   list.innerHTML = "";
+
   events.forEach((e, i) => {
     const li = document.createElement("li");
-    li.textContent = e.text;
-    li.draggable = true;
 
-    li.ondragstart = ev => {
-      ev.dataTransfer.setData("from", i);
+    const text = document.createElement("div");
+    text.className = "event-text";
+    text.textContent = e.text;
+
+    const controls = document.createElement("div");
+    controls.className = "controls";
+
+    const up = document.createElement("button");
+    up.className = "ctrl-btn";
+    up.type = "button";
+    up.textContent = "↑";
+    up.disabled = i === 0;
+    up.onclick = () => {
+      if (i === 0) return;
+      swap(i, i - 1);
     };
 
-    li.ondragover = ev => ev.preventDefault();
-
-    li.ondrop = ev => {
-      const from = ev.dataTransfer.getData("from");
-      const to = i;
-      events.splice(to, 0, events.splice(from, 1)[0]);
-      render();
+    const down = document.createElement("button");
+    down.className = "ctrl-btn";
+    down.type = "button";
+    down.textContent = "↓";
+    down.disabled = i === events.length - 1;
+    down.onclick = () => {
+      if (i === events.length - 1) return;
+      swap(i, i + 1);
     };
+
+    controls.appendChild(up);
+    controls.appendChild(down);
+
+    li.appendChild(text);
+    li.appendChild(controls);
 
     list.appendChild(li);
   });
+}
+
+function swap(a, b) {
+  const temp = events[a];
+  events[a] = events[b];
+  events[b] = temp;
+  render();
 }
 
 document.getElementById("submit").onclick = () => {
@@ -49,10 +75,10 @@ document.getElementById("submit").onclick = () => {
       (left && left.order < e.order) ||
       (right && right.order > e.order)
     ) {
-      return "🟧";
+      return "🟨";
     }
 
-    return "⬜";
+    return "🟦";
   });
 
   attempts.push(row);
@@ -63,5 +89,9 @@ document.getElementById("submit").onclick = () => {
 };
 
 function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
