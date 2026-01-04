@@ -2,27 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Event Order — Beta v1.03</title>
+  <title>Order These — Beta v1.04</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Fixed header -->
-  <header class="topbar">
-    <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
-      ℹ️
-    </button>
 
-    <div class="brand">
-      <!-- Replace logo.PNG with your graphic file -->
-      <img class="logo" src="logo.PNG" alt="Event Order" onerror="this.style.display='none';document.getElementById('logoText').style.display='block';" />
-      <div id="logoText" class="logo-text" style="display:none;">Event Order</div>
-      <div id="buildLine" class="buildline"></div>
+  <!-- Sticky header: left buttons + centred logo -->
+  <header class="topbar">
+    <div class="left-actions">
+      <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
+        <img class="icon-img" src="info.PNG" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" aria-hidden="true" style="display:none;">ℹ️</span>
+      </button>
+
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-haspopup="menu" aria-expanded="false">
+        <img class="icon-img" src="menu.PNG" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" aria-hidden="true" style="display:none;">☰</span>
+      </button>
     </div>
 
-    <!-- Spacer to balance the left icon button -->
-    <div class="topbar-spacer" aria-hidden="true"></div>
+    <div class="brand">
+      <!-- Your existing logo file; keep case exactly as uploaded -->
+      <img
+        class="logo"
+        src="logo.PNG"
+        alt="Order These"
+        onerror="this.style.display='none';document.getElementById('logoText').style.display='block';"
+      />
+      <div id="logoText" class="logo-text" style="display:none;">Order These</div>
+    </div>
   </header>
+
+  <!-- Dropdown menu -->
+  <nav id="menuDropdown" class="menu" role="menu" hidden>
+    <a class="menu-item" role="menuitem" href="archive.html">Archive</a>
+    <a class="menu-item" role="menuitem" href="feedback.html">Feedback</a>
+    <a class="menu-item" role="menuitem" href="about.html">About</a>
+  </nav>
 
   <!-- Info modal -->
   <div id="infoModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
@@ -32,7 +49,7 @@
         <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <p><strong>Goal:</strong> tap the 6 events in chronological order (earliest → latest).</p>
+        <p><strong>Goal:</strong> tap the 6 items in the correct order (earliest → latest).</p>
         <p>You have <strong>3 attempts</strong> per day. The game auto-submits when you’ve selected all 6.</p>
         <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ not in the right place.</p>
         <p>Your progress is saved for the day in your browser.</p>
@@ -42,19 +59,29 @@
   </div>
 
   <main>
+    <!-- Non-sticky build line -->
+    <p id="buildLine" class="buildline"></p>
+
     <p id="meta" class="meta"></p>
-    <p class="subtitle">Tap events in order (earliest → latest).</p>
+    <p class="subtitle">Tap the items in order (earliest → latest).</p>
 
     <p id="message" class="message"></p>
 
-    <div class="panel">
-      <pre id="grid" class="grid" aria-label="Results grid"></pre>
+    <!-- Grid + share (share appears to the right after completion) -->
+    <div class="gridwrap">
+      <div class="panel">
+        <pre id="grid" class="grid" aria-label="Results grid"></pre>
+      </div>
+
+      <div class="sharecol">
+        <button id="share" type="button" class="share" style="display:none;">Share</button>
+      </div>
     </div>
 
-    <div class="row">
+    <!-- Controls row (hidden after completion) -->
+    <div id="controlsRow" class="row">
       <button id="undo" class="secondary" type="button" disabled>Undo</button>
       <button id="clear" class="secondary" type="button" disabled>Clear</button>
-      <button id="share" type="button" class="share" style="display:none;">Share results</button>
     </div>
 
     <div id="history" class="history" aria-label="Previous attempts"></div>
