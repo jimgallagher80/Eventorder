@@ -1,0 +1,28 @@
+{
+  "events": [
+    {
+      "text": "The Berlin Wall falls",
+      "order": 1
+    },
+    {
+      "text": "Google is founded",
+      "order": 2
+    },
+    {
+      "text": "Wikipedia launches",
+      "order": 3
+    },
+    {
+      "text": "Facebook opens to the public",
+      "order": 4
+    },
+    {
+      "text": "The first iPhone goes on sale",
+      "order": 5
+    },
+    {
+      "text": "Netflix launches streaming internationally",
+      "order": 6
+    }
+  ]
+}
