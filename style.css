@@ -147,3 +147,65 @@ button.secondary {
   margin: 0.75rem 0 0 0;
   color: #cbd5e1;
 }
+
+.event-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.event-btn {
+  text-align: left;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  color: #e5e7eb;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.event-btn.selected {
+  background: #0b3b2e;          /* dark greenish */
+  border-color: #1f8a6a;
+}
+
+.event-btn:disabled {
+  opacity: 0.9;                /* keep readable even when disabled */
+}
+
+.choice-badge {
+  min-width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e5e7eb;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+button.secondary {
+  background: #334155;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.message {
+  margin: 0 0 0.75rem 0;
+  color: #cbd5e1;
+}
