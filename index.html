@@ -7,18 +7,30 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
-    <h1>Event Order</h1>
-    <p class="subtitle">Put today’s events in the order they happened.</p>
+<main>
+  <h1>Event Order</h1>
+  <p class="subtitle">Tap the events in the order they happened (earliest → latest).</p>
 
-    <ul id="event-list" class="event-list"></ul>
-    <p class="hint">Tip: use ↑ / ↓ to reorder on mobile.</p>
+  <div class="panel">
+    <h2 class="h2">Your order (6 taps)</h2>
+    <ol id="pick-list" class="pick-list"></ol>
 
+    <div class="row">
+      <button id="clear" class="secondary" type="button">Clear</button>
+      <button id="submit" type="button">Submit</button>
+    </div>
 
-    <button id="submit">Submit</button>
+    <p id="message" class="message"></p>
+  </div>
 
-    <pre id="grid"></pre>
-  </main>
+  <div class="panel">
+    <h2 class="h2">Events</h2>
+    <div id="event-buttons" class="event-buttons"></div>
+  </div>
+
+  <pre id="grid"></pre>
+</main>
+
 
   <script src="game.js"></script>
 </body>
