@@ -1,5 +1,6 @@
 (() => {
-  const BASE_GAME_DATE = new Date("2026-01-04T00:00:00"); // Game 1 date
+  const BASE_GAME_DATE = new Date(); // Game 1 = today (your local date)
+
 
   let events = [];
   let attempts = [];
