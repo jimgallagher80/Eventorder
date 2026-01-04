@@ -1,52 +1,59 @@
 (() => {
-  // Base date for "Game #"
-  // Set this to the date you want Game 1 to be.
-  const BASE_GAME_DATE = new Date("2025-01-04T00:00:00");
+  const BASE_GAME_DATE = new Date("2025-01-04T00:00:00"); // Game 1 date
 
   let events = [];
   let attempts = [];
   const maxMistakes = 3;
 
-  let currentPick = []; // stores event indices in the order tapped
+  let currentPick = []; // indices
   let mistakes = 0;
   let gameOver = false;
 
-  // DOM
   const $ = (id) => document.getElementById(id);
 
   const today = startOfDay(new Date());
   const gameNumber = Math.max(1, daysBetween(startOfDay(BASE_GAME_DATE), today) + 1);
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // Set meta line under title
-    $("meta").textContent = `${formatDateWithOrdinal(today)} - Game ${gameNumber}`;
+  // --- robust init (works whether DOM is ready or not) ---
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 
-    // Wire buttons
-    $("undo").addEventListener("click", undo);
-    $("clear").addEventListener("click", clearAll);
-    $("share").addEventListener("click", shareResults);
+  function init() {
+    // Set meta line (date + game number)
+    const metaEl = $("meta");
+    if (metaEl) metaEl.textContent = `${formatDateWithOrdinal(today)} - Game ${gameNumber}`;
 
-    // Load puzzle data
+    // Wire buttons safely (in case you tweak HTML later)
+    const undoBtn = $("undo");
+    const clearBtn = $("clear");
+    const shareBtn = $("share");
+
+    if (undoBtn) undoBtn.addEventListener("click", undo);
+    if (clearBtn) clearBtn.addEventListener("click", clearAll);
+    if (shareBtn) shareBtn.addEventListener("click", shareResults);
+
     loadPuzzle();
-  });
+  }
 
   async function loadPuzzle() {
     try {
       setMessage("Loading today’s events…");
 
       const res = await fetch("puzzles.json", { cache: "no-store" });
-      if (!res.ok) throw new Error(`Could not load puzzles.json (${res.status})`);
+      if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
 
       const data = await res.json();
-      if (!data?.events?.length) throw new Error("puzzles.json has no events");
+      if (!data?.events?.length) throw new Error("No events found in puzzles.json");
 
       events = shuffle([...data.events]);
       renderAll();
       setMessage("Tap 6 events in order.");
     } catch (err) {
-      setMessage("Couldn’t load today’s events. Please refresh and try again.");
-      // Helpful debug in console if needed
       console.error(err);
+      setMessage("Couldn’t load today’s events. Please refresh and try again.");
     }
   }
 
@@ -58,6 +65,8 @@
 
   function renderEventButtons() {
     const container = $("event-buttons");
+    if (!container) return;
+
     container.innerHTML = "";
 
     events.forEach((e, idx) => {
@@ -89,7 +98,10 @@
         renderEventButtons();
         updateControls();
 
-        if (currentPick.length === 6) submitAttempt(); // auto-submit on 6th tap
+        if (currentPick.length === 6) {
+          // Ensure submit runs reliably after the state update
+          queueMicrotask(submitAttempt);
+        }
       });
 
       container.appendChild(btn);
@@ -141,7 +153,6 @@
       return;
     }
 
-    // Next attempt
     currentPick = [];
     renderEventButtons();
     updateControls();
@@ -149,32 +160,30 @@
   }
 
   function finishGame() {
-    // Disable all event selections + undo/clear
     renderEventButtons();
     updateControls();
 
-    // Show Share button only once game is completed
-    $("share").style.display = "inline-block";
-    $("share").disabled = false;
+    const shareBtn = $("share");
+    if (shareBtn) {
+      shareBtn.style.display = "inline-block";
+      shareBtn.disabled = false;
+    }
   }
 
   function evaluateRow(pick) {
     return pick.map((e, i) => {
-      // Green: correct absolute position
       if (e.order === i + 1) return "🟩";
-
-      // Amber: correct relative order with a neighbour
       const left = pick[i - 1];
       const right = pick[i + 1];
-      if ((left && left.order < e.order) || (right && right.order > e.order)) {
-        return "🟧";
-      }
+      if ((left && left.order < e.order) || (right && right.order > e.order)) return "🟧";
       return "⬜";
     });
   }
 
   function renderGrid() {
     const grid = $("grid");
+    if (!grid) return;
+
     if (attempts.length === 0) {
       grid.textContent = "";
       return;
@@ -189,17 +198,15 @@
   async function shareResults() {
     const text = buildShareText();
 
-    // Prefer native share sheet on mobile
     if (navigator.share) {
       try {
         await navigator.share({ text });
         return;
       } catch {
-        // User cancelled or share failed; fall back to clipboard below
+        // fall back
       }
     }
 
-    // Clipboard fallback
     try {
       await navigator.clipboard.writeText(text);
       setMessage("Results copied — you can paste them anywhere.");
@@ -209,15 +216,15 @@
   }
 
   function updateControls() {
-    $("undo").disabled = gameOver || currentPick.length === 0;
-    $("clear").disabled = gameOver || currentPick.length === 0;
-
-    // Share is only visible after completion
-    // (kept hidden via inline style until finishGame())
+    const undoBtn = $("undo");
+    const clearBtn = $("clear");
+    if (undoBtn) undoBtn.disabled = gameOver || currentPick.length === 0;
+    if (clearBtn) clearBtn.disabled = gameOver || currentPick.length === 0;
   }
 
   function setMessage(text) {
-    $("message").textContent = text;
+    const msg = $("message");
+    if (msg) msg.textContent = text;
   }
 
   function shuffle(arr) {
