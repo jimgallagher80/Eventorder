@@ -2,92 +2,120 @@ let events = [];
 let attempts = [];
 const maxMistakes = 3;
 
-let currentPick = [];   // array of event objects in chosen order
+let currentPick = []; // stores event indices in the order tapped (0..5)
 let mistakes = 0;
 let gameOver = false;
+
+const elButtons = () => document.getElementById("event-buttons");
+const elMsg = () => document.getElementById("message");
+const elGrid = () => document.getElementById("grid");
+
+const btnUndo = () => document.getElementById("undo");
+const btnClear = () => document.getElementById("clear");
+const btnCopy = () => document.getElementById("copy");
 
 fetch("puzzles.json")
   .then(r => r.json())
   .then(data => {
     events = shuffle([...data.events]);
     renderAll();
-    setMessage("Tap 6 events in order, then submit.");
+    setMessage("Tap 6 events in order.");
   });
 
 function renderAll() {
-  renderPickList();
   renderEventButtons();
   renderGrid();
-}
-
-function renderPickList() {
-  const ol = document.getElementById("pick-list");
-  ol.innerHTML = "";
-
-  for (let i = 0; i < 6; i++) {
-    const li = document.createElement("li");
-    li.textContent = currentPick[i]?.text ?? "—";
-    ol.appendChild(li);
-  }
+  updateControls();
 }
 
 function renderEventButtons() {
-  const container = document.getElementById("event-buttons");
+  const container = elButtons();
   container.innerHTML = "";
 
-  events.forEach((e) => {
+  events.forEach((e, idx) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "event-btn";
-    btn.textContent = e.text;
 
-    const alreadyPicked = currentPick.includes(e);
-    btn.disabled = gameOver || alreadyPicked;
+    const pickedPos = currentPick.indexOf(idx); // -1 if not picked
+    if (pickedPos >= 0) btn.classList.add("selected");
+
+    const left = document.createElement("span");
+    left.textContent = e.text;
+
+    const badge = document.createElement("span");
+    badge.className = "choice-badge";
+    badge.textContent = pickedPos >= 0 ? String(pickedPos + 1) : "";
+
+    btn.appendChild(left);
+    btn.appendChild(badge);
+
+    // Allow selection only if game not over and not already picked and fewer than 6 picks
+    btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
 
     btn.onclick = () => {
       if (gameOver) return;
       if (currentPick.length >= 6) return;
+      if (currentPick.includes(idx)) return;
 
-      currentPick.push(e);
-      renderAll();
+      currentPick.push(idx);
+      renderEventButtons();
+      updateControls();
 
-      // Optional: auto-submit when 6 picked
-      // if (currentPick.length === 6) submitAttempt();
+      if (currentPick.length === 6) {
+        submitAttempt(); // auto-submit on 6th tap
+      }
     };
 
     container.appendChild(btn);
   });
 }
 
-document.getElementById("clear").onclick = () => {
+btnUndo().onclick = () => {
   if (gameOver) return;
-  currentPick = [];
-  setMessage("Cleared. Tap 6 events in order, then submit.");
-  renderAll();
+  if (currentPick.length === 0) return;
+  currentPick.pop();
+  renderEventButtons();
+  updateControls();
+  setMessage("Undone.");
 };
 
-document.getElementById("submit").onclick = () => {
-  submitAttempt();
+btnClear().onclick = () => {
+  if (gameOver) return;
+  currentPick = [];
+  renderEventButtons();
+  updateControls();
+  setMessage("Cleared. Tap 6 events in order.");
+};
+
+btnCopy().onclick = async () => {
+  const text = buildShareText();
+  try {
+    await navigator.clipboard.writeText(text);
+    setMessage("Copied results to clipboard.");
+  } catch {
+    setMessage("Couldn’t copy automatically. Select and copy the grid below.");
+  }
 };
 
 function submitAttempt() {
   if (gameOver) return;
+  if (currentPick.length !== 6) return;
 
-  if (currentPick.length !== 6) {
-    setMessage("Pick all 6 events before submitting.");
-    return;
-  }
+  const pickedEvents = currentPick.map(i => events[i]);
+  const row = evaluateRow(pickedEvents);
 
-  const row = evaluateRow(currentPick);
   attempts.push(row);
   renderGrid();
+  btnCopy().disabled = false;
 
-  const solved = row.every(cell => cell === "🟩");
+  const solved = row.every(c => c === "🟩");
 
   if (solved) {
     gameOver = true;
     setMessage("Congratulations — you solved today’s Event Order.");
-    renderAll();
+    updateControls();
+    renderEventButtons(); // disables all
     return;
   }
 
@@ -96,46 +124,52 @@ function submitAttempt() {
   if (mistakes >= maxMistakes) {
     gameOver = true;
     setMessage("Try again tomorrow.");
-    renderAll();
+    updateControls();
+    renderEventButtons(); // disables all
     return;
   }
 
-  // Next attempt: clear picks
+  // Reset picks for next attempt
   currentPick = [];
+  renderEventButtons();
+  updateControls();
   setMessage(`Not quite. Attempts remaining: ${maxMistakes - mistakes}.`);
-  renderAll();
 }
 
 function evaluateRow(pick) {
-  // Green: correct absolute position
-  // Amber: correctly ordered relative to at least one neighbour
   return pick.map((e, i) => {
     if (e.order === i + 1) return "🟩";
 
     const left = pick[i - 1];
     const right = pick[i + 1];
 
-    // Amber if correct relative order with left or right neighbour
     if ((left && left.order < e.order) || (right && right.order > e.order)) {
-      return "🟧";
+      return "🟨";
     }
-    return "⬜";
+    return "🟦";
   });
 }
 
 function renderGrid() {
-  const grid = document.getElementById("grid");
   if (attempts.length === 0) {
-    grid.textContent = "";
+    elGrid().textContent = "";
     return;
   }
-  grid.textContent =
-    "Event Order\n" +
-    attempts.map(r => r.join(" ")).join("\n");
+  elGrid().textContent = buildShareText();
+}
+
+function buildShareText() {
+  return "Event Order\n" + attempts.map(r => r.join(" ")).join("\n");
+}
+
+function updateControls() {
+  btnUndo().disabled = gameOver || currentPick.length === 0;
+  btnClear().disabled = gameOver || currentPick.length === 0;
+  btnCopy().disabled = attempts.length === 0;
 }
 
 function setMessage(text) {
-  document.getElementById("message").textContent = text;
+  elMsg().textContent = text;
 }
 
 function shuffle(arr) {
