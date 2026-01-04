@@ -32,7 +32,7 @@
   --safeTop: env(safe-area-inset-top);
 
   /* New: smaller topbar */
-  --topbarBase: 66px; /* was 92px */
+  --topbarBase: 56px; /* was 92px */
 }
 
 *{ box-sizing: border-box; }
@@ -73,7 +73,7 @@ button,
 
 .left-actions{
   display: flex;
-  gap: 10px;
+  gap: 6px;
   padding-left: 12px;
 }
 
@@ -130,7 +130,7 @@ button,
 main{
   max-width: 680px;
   margin: 0 auto;
-  padding: calc(var(--topbarBase) + 18px + var(--safeTop)) 14px 18px 14px;
+  padding: calc(var(--topbarBase) + 12px + var(--safeTop)) 14px 18px 14px;
 }
 
 .meta{
