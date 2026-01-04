@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Order These — Beta v1.04</title>
+  <title>Order These — Beta v1.05</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -23,7 +23,6 @@
     </div>
 
     <div class="brand">
-      <!-- Your existing logo file; keep case exactly as uploaded -->
       <img
         class="logo"
         src="logo.PNG"
@@ -53,42 +52,12 @@
         <p>You have <strong>3 attempts</strong> per day. The game auto-submits when you’ve selected all 6.</p>
         <p><strong>Colours:</strong> 🟩 correct position, 🟧 close/partially ordered, ⬜ not in the right place.</p>
         <p>Your progress is saved for the day in your browser.</p>
-      </div>
-    </div>
-    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
-  </div>
 
-  <main>
-    <!-- Non-sticky build line -->
-    <p id="buildLine" class="buildline"></p>
-
-    <p id="meta" class="meta"></p>
-    <p class="subtitle">Tap the items in order (earliest → latest).</p>
-
-    <p id="message" class="message"></p>
-
-    <!-- Grid + share (share appears to the right after completion) -->
-    <div class="gridwrap">
-      <div class="panel">
-        <pre id="grid" class="grid" aria-label="Results grid"></pre>
-      </div>
-
-      <div class="sharecol">
-        <button id="share" type="button" class="share" style="display:none;">Share</button>
-      </div>
-    </div>
-
-    <!-- Controls row (hidden after completion) -->
-    <div id="controlsRow" class="row">
-      <button id="undo" class="secondary" type="button" disabled>Undo</button>
-      <button id="clear" class="secondary" type="button" disabled>Clear</button>
-    </div>
-
-    <div id="history" class="history" aria-label="Previous attempts"></div>
-
-    <div id="event-buttons" class="event-buttons"></div>
-  </main>
-
-  <script src="game.js" defer></script>
-</body>
-</html>
+        <div class="dev-panel">
+          <div class="dev-title">Developer</div>
+          <label class="toggle">
+            <input id="devToggle" type="checkbox" />
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span class="toggle-text">Developer mode: allow replay today</span>
+          </label>
+          <div class="dev-hint"
