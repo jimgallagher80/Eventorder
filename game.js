@@ -1,15 +1,12 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.08 (Beta) — persist per-button feedback across attempts; greens stay locked-in visually
+  // v1.09 (Beta) — persistent per-button feedback; hide grid panel until first attempt; fixed last-updated stamp
 
-  const VERSION = "1.08";
-  const LAST_UPDATED = new Date().toLocaleString("en-GB", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const VERSION = "1.09";
+
+  // Fixed "last updated" (set to when this code was produced, not runtime "now")
+  // Europe/London
+  const LAST_UPDATED = "04 Jan 2026 18:00";
 
   const $ = (id) => document.getElementById(id);
 
@@ -70,13 +67,10 @@
   let gameOver = false;
 
   // Track attempted full sequences so repeating doesn't cost a turn
-  // signature is "idx-idx-idx-idx-idx-idx"
   let attemptedSignatures = [];
 
   // Per-button feedback (persistent across attempts)
-  // maps eventIdx -> "🟩/🟧/⬜"
-  let feedbackMap = {}; // { [idx]: "🟩"|"🟧"|"⬜" }
-  // For greens: show correct position number (1..6) in badge, light grey
+  let feedbackMap = {};   // { [idx]: "🟩"|"🟧"|"⬜" }
   let correctPosMap = {}; // { [idx]: number }
 
   const maxMistakes = 3;
@@ -99,7 +93,13 @@
   function setMeta() {
     const el = $("meta");
     if (!el) return;
-    el.textContent = `${formatDateWithOrdinal(today)} - Game ${gameNumber}`;
+    el.textContent = `${formatDateWithOrdinal(today)} · Game ${gameNumber}`;
+  }
+
+  function setGridVisibility() {
+    const panel = $("gridPanel");
+    if (!panel) return;
+    panel.style.display = attempts.length > 0 ? "block" : "none";
   }
 
   // Modal & menu wiring
@@ -202,6 +202,9 @@
   function renderGrid() {
     const grid = $("grid");
     if (!grid) return;
+
+    setGridVisibility();
+
     if (attempts.length === 0) {
       grid.textContent = "";
       return;
@@ -317,6 +320,7 @@
 
     const sig = currentPick.join("-");
     if (attemptedSignatures.includes(sig)) {
+      // Reset without using up a turn
       currentPick = [];
       saveState();
       renderEventButtons();
@@ -330,10 +334,9 @@
     const pickedEvents = currentPick.map(i => events[i]);
     const row = evaluateRow(pickedEvents);
 
-    // Merge per-button feedback from this attempt into persistent knowledge
+    // Merge per-button feedback into persistent knowledge
     currentPick.forEach((eventIdx, pos) => {
-      const emoji = row[pos];
-      mergePersistentFeedback(eventIdx, emoji, pos + 1);
+      mergePersistentFeedback(eventIdx, row[pos], pos + 1);
     });
 
     attempts.push(row);
@@ -363,7 +366,7 @@
       return;
     }
 
-    // Next attempt: keep same order, clear selection (feedback remains visible)
+    // Next attempt: keep same order, clear selection
     currentPick = [];
     saveState();
     renderEventButtons();
@@ -439,6 +442,7 @@
         setBuildLine();
         setMeta();
         setMessage("No puzzle published for today yet.");
+        attempts = [];
         renderGrid();
         updateControls();
         return;
