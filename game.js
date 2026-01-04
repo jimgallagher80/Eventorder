@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.11 (Beta) — NYT-style colours; animated reorders; green items move into correct slots during play; controls below; share label
-  const VERSION = "1.11";
+  // v1.12 (Beta) — smaller topbar/logo; hide badge circle on final reveal
+  const VERSION = "1.12";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "04 Jan 2026 19:05";
+  const LAST_UPDATED = "04 Jan 2026 19:25";
 
   const $ = (id) => document.getElementById(id);
 
@@ -105,24 +105,19 @@
   const storageKey = `orderthese:${todayKey}`;
 
   let events = [];             // { text, order, value? }
-  let attempts = [];           // emoji rows (share only)
+  let attempts = [];           // rows (share only)
   let currentPick = [];        // indices into events
   let mistakes = 0;
   let gameOver = false;
 
   let attemptedSignatures = []; // "idx-idx-idx-idx-idx-idx"
 
-  // Most recent attempt feedback only (colours can change each attempt)
   let feedbackMap = {};        // { [eventIdx]: "G"|"Y"|"B" }
-  let correctPosMap = {};      // { [eventIdx]: number } for current attempt greens
+  let correctPosMap = {};      // { [eventIdx]: number } (kept for compatibility)
 
-  // NEW: once an item has ever been green, it moves into its correct slot and stays there
-  let placedMap = {};          // { [eventIdx]: number } 1..6
+  let placedMap = {};          // { [eventIdx]: number } 1..6 (ever-green)
+  let displayOrder = [];       // visual order [eventIdx..]
 
-  // NEW: display order of event indices (length 6)
-  let displayOrder = [];       // [eventIdx, ...] length 6
-
-  // Cached DOM nodes for stability + smooth animation
   const btnEls = new Map();    // key=eventIdx string -> button element
 
   const maxMistakes = 3;
@@ -242,7 +237,6 @@
     if (undoBtn) undoBtn.disabled = !canEdit || currentPick.length === 0;
     if (clearBtn) clearBtn.disabled = !canEdit || currentPick.length === 0;
 
-    // After completion: hide Undo/Clear row entirely, show Share
     if (controlsRow) controlsRow.style.display = gameOver ? "none" : "flex";
 
     if (shareBtn) {
@@ -252,7 +246,6 @@
   }
 
   function evaluateRow(pick) {
-    // Using your existing logic but mapping outputs to G/Y/B (green/yellow/blue)
     return pick.map((e, i) => {
       if (e.order === i + 1) return "G";
       const left = pick[i - 1];
@@ -263,7 +256,6 @@
   }
 
   function buildShareText() {
-    // Map G/Y/B to emoji (no spaces)
     const map = { G: "🟩", Y: "🟨", B: "🟦" };
     const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
     return `Order These\nGame #${gameNumber}\n${gridLines}`;
@@ -302,7 +294,6 @@
     const container = $("event-buttons");
     if (!container) return;
 
-    // Create buttons once for each event index
     for (let i = 0; i < events.length; i++) {
       const key = String(i);
       if (btnEls.has(key)) continue;
@@ -354,17 +345,13 @@
   }
 
   function computeVisualOrder() {
-    // At game over: always show true correct order (order 1..6)
     if (gameOver) {
-      const order = events
+      return events
         .map((e, idx) => ({ idx, ord: e.order }))
         .sort((a, b) => a.ord - b.ord)
         .map(x => x.idx);
-      return order;
     }
 
-    // During play:
-    // Fixed slots from placedMap (ever-green) stay put; fill remaining in current relative order.
     const fixed = Array(6).fill(null);
     Object.keys(placedMap || {}).forEach(k => {
       const idx = Number(k);
@@ -393,17 +380,14 @@
 
     const first = recordPositions(container);
 
-    // Compute and apply new visual order
     const newOrder = computeVisualOrder();
-    displayOrder = newOrder.slice(); // persist the latest visual order during play
+    displayOrder = newOrder.slice();
 
-    // Re-append buttons in the new order
     newOrder.forEach(idx => {
       const el = btnEls.get(String(idx));
       if (el) container.appendChild(el);
     });
 
-    // Update button styles/content after reordering
     newOrder.forEach(idx => {
       const btn = btnEls.get(String(idx));
       if (!btn) return;
@@ -417,7 +401,6 @@
 
       if (title) title.textContent = e.text;
 
-      // value line only on final reveal
       if (val) {
         if (gameOver) {
           const v = getOptionalValueText(e);
@@ -434,7 +417,6 @@
         }
       }
 
-      // Classes
       btn.classList.remove("fb-blue", "fb-yellow", "fb-green", "final-reveal", "selected");
 
       const pickedPos = currentPick.indexOf(idx);
@@ -449,30 +431,29 @@
         else btn.classList.add("fb-blue");
       }
 
-      // Badge behaviour
       if (badge) {
-        badge.classList.remove("badge-correct");
+        // Final reveal: hide badge circle entirely via CSS; also clear content.
         if (gameOver) {
           badge.textContent = "";
+          badge.classList.remove("badge-correct");
         } else if (pickedPos >= 0) {
           badge.textContent = String(pickedPos + 1);
+          badge.classList.remove("badge-correct");
         } else {
-          // If it's ever been green (placed), show its slot number in light grey
           const placed = placedMap[idx];
           if (typeof placed === "number" && placed >= 1 && placed <= 6) {
             badge.textContent = String(placed);
             badge.classList.add("badge-correct");
           } else {
             badge.textContent = "";
+            badge.classList.remove("badge-correct");
           }
         }
       }
 
-      // Disabled rules (same as before)
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
     });
 
-    // Animate movement
     requestAnimationFrame(() => {
       playFlip(container, first);
     });
@@ -497,9 +478,8 @@
     attemptedSignatures.push(sig);
 
     const pickedEvents = currentPick.map(i => events[i]);
-    const row = evaluateRow(pickedEvents); // ["G","Y","B",...]
+    const row = evaluateRow(pickedEvents);
 
-    // Update feedback for MOST RECENT attempt only
     const newFeedback = {};
     const newCorrect = {};
 
@@ -512,10 +492,9 @@
     feedbackMap = newFeedback;
     correctPosMap = newCorrect;
 
-    // Any greens in this attempt get "placed" permanently into their correct slot (visual)
     currentPick.forEach((eventIdx, pos) => {
       if (row[pos] === "G") {
-        placedMap[eventIdx] = pos + 1; // 1..6
+        placedMap[eventIdx] = pos + 1;
       }
     });
 
@@ -542,7 +521,6 @@
       return;
     }
 
-    // Next attempt: clear selection; keep visual order (including placed greens)
     currentPick = [];
     saveState();
     updateButtonsAndOrder();
@@ -607,7 +585,6 @@
       correctPosMap = {};
       placedMap = {};
 
-      // Initial visual order = 0..5 (events already shuffled)
       displayOrder = events.map((_, i) => i);
 
       saveState();
@@ -639,7 +616,6 @@
       toggleMenu();
     });
 
-    // close dropdown when tapping elsewhere
     document.addEventListener("click", (e) => {
       if (!dropdown || dropdown.hidden) return;
       const withinMenu = dropdown.contains(e.target);
@@ -647,7 +623,6 @@
       if (!withinMenu && !withinBtn) closeMenu();
     });
 
-    // Dev toggle
     const devToggle = $("devToggle");
     if (devToggle) {
       devToggle.checked = DEV_PERSIST;
@@ -675,7 +650,6 @@
     wireHeaderUI();
     wireGameUI();
 
-    // In dev mode, allow replay by clearing today's save
     if (localStorage.getItem("orderthese:dev") === "true" || DEV_QUERY) {
       clearSavedGame();
     }
