@@ -8,6 +8,22 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // TEMP DEBUG: show any JS errors on-screen (iOS Safari friendly)
+  window.addEventListener("error", (e) => {
+    const msg = `JS error: ${e.message} @ ${e.filename?.split("/").pop()}:${e.lineno}`;
+    const el = document.getElementById("message");
+    if (el) el.textContent = msg;
+    else alert(msg);
+  });
+
+  window.addEventListener("unhandledrejection", (e) => {
+    const msg = `Promise error: ${String(e.reason)}`;
+    const el = document.getElementById("message");
+    if (el) el.textContent = msg;
+    else alert(msg);
+  });
+
+  
   // Dev mode:
   // - one-off: ?dev=1
   // - persistent: localStorage "orderthese:dev" === "true"
