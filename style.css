@@ -10,24 +10,23 @@
   --btnSecondary: #f1f5f9;
   --btnSecondaryText: #0f172a;
 
-  --card: #ffffff;
+  /* NYT-ish colours (by eye) */
+  --nytBlue: #A9CBEA;     /* Connections result-band blue, slightly darker */
+  --nytBlueBorder: #7FB0DA;
 
-  --green: #16a34a;
-  --greenBright: #22c55e;
-  --amber: #f59e0b;
+  --nytYellow: #F9DF6D;   /* Connections result-band yellow */
+  --nytYellowBorder: #E7C94A;
 
-  /* Feedback tints */
-  --greenTint: #ecfdf5;
-  --amberTint: #fff7ed;
+  --nytGreen: #A0C35A;    /* single green used everywhere */
 
-  /* New: default "no feedback" = light blue */
-  --blueTint: #e6f3ff;
-  --blueBorder: #93c5fd;
+  /* Map game semantics to NYT-ish */
+  --blueTint: var(--nytBlue);
+  --blueBorder: var(--nytBlueBorder);
 
-    /* NYT Connections green (approx) */
-  --finalGreenTint: #A0C35A; /* background */
-  --finalGreen: #7EA83D;     /* border (slightly darker) */
+  --amber: var(--nytYellow);
+  --amberBorder: var(--nytYellowBorder);
 
+  --green: var(--nytGreen);
 
   /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
@@ -128,14 +127,14 @@ main{
   margin: 0.25rem 0 0.4rem 0;
   color: var(--muted);
   font-size: 14px;
-  font-weight: 800; /* requested */
+  font-weight: 800;
 }
 
 .subtitle{
   margin: 0 0 0.75rem 0;
   color: var(--muted);
   font-size: 14px;
-  font-weight: 800; /* requested */
+  font-weight: 800;
 }
 
 .message{
@@ -172,10 +171,21 @@ button.secondary{
   border-color: var(--border);
 }
 
-button.share{
-  background: var(--btn);
-  color: var(--btnText);
-  border-color: var(--btn);
+/* Share row centred at bottom */
+.share-row{
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* Share button: light blue, not full width */
+#share.share{
+  width: auto;
+  padding: 12px 18px;
+  background: var(--blueTint);
+  color: var(--text);
+  border: 1px solid var(--blueBorder);
+  border-radius: 14px;
 }
 
 /* Event option buttons */
@@ -186,10 +196,13 @@ button.share{
   margin-top: 12px;
 }
 
+/* Reorder animation (FLIP) */
 .event-btn{
-  /* requested: default light blue */
+  transition: transform 220ms ease, background-color 160ms ease, border-color 160ms ease;
+  will-change: transform;
+
   background: var(--blueTint);
-  border: 1px solid var(--blueBorder);
+  border: 2px solid var(--blueBorder);
 
   border-radius: 14px;
   padding: 12px 12px;
@@ -202,7 +215,7 @@ button.share{
   justify-content: space-between;
   gap: 10px;
 
-  min-height: 52px;
+  min-height: 56px;
 }
 
 .event-left{
@@ -212,7 +225,7 @@ button.share{
 }
 
 .event-title{
-  font-weight: 800; /* requested: bold text within boxes */
+  font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -220,9 +233,9 @@ button.share{
 
 .event-value{
   margin-top: 4px;
-  font-size: 13px;     /* requested: slightly smaller */
-  color: var(--muted);
-  font-weight: 400;    /* requested: not bold */
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.78);
+  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -230,8 +243,8 @@ button.share{
 
 /* Selected (in current pick) */
 .event-btn.selected{
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 2px rgba(148,163,184,0.25) inset;
+  border-color: rgba(15, 23, 42, 0.25);
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06) inset;
 }
 
 /* Disabled should still be readable */
@@ -254,8 +267,8 @@ button.share{
   font-size: 14px;
   color: var(--text);
 
-  background: rgba(255,255,255,0.65);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.68);
+  border: 1px solid rgba(15, 23, 42, 0.12);
 
   line-height: 1;
   padding: 0;
@@ -265,34 +278,30 @@ button.share{
 /* Correct-position badge styling (light grey number) */
 .choice-badge.badge-correct{
   color: #9ca3af;
-  border-color: #e5e7eb;
-  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255,255,255,0.78);
 }
 
-/* Hybrid feedback styling (matches JS classes) */
-
-/* No-change/incorrect remains light blue */
-.event-btn.fb-white{
+/* Feedback styling (hybrid: thicker borders) */
+.event-btn.fb-blue{
   background: var(--blueTint);
   border: 3px solid var(--blueBorder);
 }
 
-/* Partial / amber */
-.event-btn.fb-amber{
-  background: var(--amberTint);
-  border: 3px solid var(--amber);
+.event-btn.fb-yellow{
+  background: var(--amber);
+  border: 3px solid var(--amberBorder);
 }
 
-/* Correct / green */
 .event-btn.fb-green{
-  background: var(--greenTint);
+  background: var(--green);
   border: 3px solid var(--green);
 }
 
-/* Final reveal styling (darker green, only at end) */
+/* Final reveal uses the same single green */
 .event-btn.final-reveal{
-  background: var(--finalGreenTint);
-  border: 3px solid var(--finalGreen);
+  background: var(--green);
+  border: 3px solid var(--green);
 }
 
 /* Dropdown menu */
@@ -450,7 +459,7 @@ button.share{
   color: var(--muted);
 }
 
-/* Footer build line: centred with a grey separator line and extra gap */
+/* Footer build line: centred with separator line and extra gap */
 .buildline{
   margin: 22px 0 0 0;
   padding-top: 12px;
@@ -458,21 +467,4 @@ button.share{
   text-align: center;
   font-size: 12px;
   color: var(--muted);
-}
-
-/* Share row centred at bottom */
-.share-row{
-  display: flex;
-  justify-content: center;
-  margin-top: 14px;
-}
-
-/* Share button: light blue, not full width */
-#share.share{
-  width: auto;
-  padding: 12px 18px;
-  background: var(--blueTint);
-  color: var(--text);
-  border: 1px solid var(--blueBorder);
-  border-radius: 14px;
 }
