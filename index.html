@@ -9,31 +9,20 @@
 <body>
 <main>
   <h1>Event Order</h1>
-  <p class="subtitle">
-    Tap the events in the order they happened (earliest → latest).
-  </p>
+  <p class="subtitle">Tap 6 events in order (earliest → latest). Auto-submits on your 6th tap.</p>
 
-  <div class="panel">
-    <h2 class="h2">Your order</h2>
-    <ol id="pick-list" class="pick-list"></ol>
-
-    <div class="row">
-      <button id="clear" class="secondary" type="button">Clear</button>
-      <button id="submit" type="button">Submit</button>
-    </div>
-
-    <p id="message" class="message"></p>
+  <div class="row">
+    <button id="undo" class="secondary" type="button" disabled>Undo</button>
+    <button id="clear" class="secondary" type="button" disabled>Clear</button>
+    <button id="copy" type="button" disabled>Copy results</button>
   </div>
 
-  <div class="panel">
-    <h2 class="h2">Events</h2>
-    <div id="event-buttons" class="event-buttons"></div>
-  </div>
+  <p id="message" class="message"></p>
+
+  <div id="event-buttons" class="event-buttons"></div>
 
   <pre id="grid"></pre>
 </main>
-
-
 
   <script src="game.js"></script>
 </body>
