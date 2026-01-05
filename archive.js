@@ -1,6 +1,6 @@
 (() => {
-  const VERSION = "1.12";
-  const LAST_UPDATED = "04 Jan 2026 22:16";
+  const VERSION = "1.13";
+  const LAST_UPDATED = "05 Jan 2026 00:40";
   const $ = (id) => document.getElementById(id);
 
   function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
@@ -9,6 +9,10 @@
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${day}`;
+  }
+  function daysBetween(a, b) {
+    const ms = 24 * 60 * 60 * 1000;
+    return Math.floor((startOfDay(b) - startOfDay(a)) / ms);
   }
   function ordinal(n) {
     const mod100 = n % 100;
@@ -66,7 +70,7 @@
     });
   }
 
-  function renderList(keys, data) {
+  function renderList(keys, earliestDate) {
     const wrap = $("archiveList");
     if (!wrap) return;
 
@@ -74,8 +78,8 @@
 
     wrap.innerHTML = "";
     keys.forEach((key) => {
-      const puzzle = data[key];
-      const rule = puzzle?.rule ? String(puzzle.rule) : "";
+      const dateObj = new Date(`${key}T00:00:00`);
+      const gameNo = Math.max(1, daysBetween(earliestDate, dateObj) + 1);
 
       const row = document.createElement("div");
       row.className = "archive-item";
@@ -85,15 +89,8 @@
 
       const title = document.createElement("div");
       title.className = "archive-date";
-      title.textContent = formatIsoKeyNice(key) + (key === todayKey ? " (Today)" : "");
+      title.textContent = `${formatIsoKeyNice(key)} · Game ${gameNo}${key === todayKey ? " (Today)" : ""}`;
       left.appendChild(title);
-
-      if (rule) {
-        const sub = document.createElement("div");
-        sub.className = "archive-rule";
-        sub.textContent = rule;
-        left.appendChild(sub);
-      }
 
       const link = document.createElement("a");
       link.className = "archive-play";
@@ -121,16 +118,21 @@
 
       const keys = Object.keys(data || {})
         .filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k))
-        .sort()          // ascending
-        .reverse();      // newest first
+        .sort();
 
       if (keys.length === 0) {
         if (msg) msg.textContent = "No puzzle dates found.";
         return;
       }
 
+      const earliestKey = keys[0];
+      const earliestDate = new Date(`${earliestKey}T00:00:00`);
+
+      // newest first
+      const newestFirst = keys.slice().reverse();
+
       if (msg) msg.textContent = "";
-      renderList(keys, data);
+      renderList(newestFirst, earliestDate);
     } catch (e) {
       console.error(e);
       if (msg) msg.textContent = "Couldn’t load the archive. Please refresh and try again.";
