@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.13 (Beta) — date param support + persisted rule subtitle
-  const VERSION = "1.13";
+  // v2.01 — archive date support + centred tiles + reorder to chosen order on 6th selection
+  const VERSION = "2.01";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "05 Jan 2026 00:40";
+  const LAST_UPDATED = "05 Jan 2026 01:05";
 
   const $ = (id) => document.getElementById(id);
 
@@ -53,9 +53,9 @@
       default: return "th";
     }
   }
-  function formatDateWithOrdinal(d) {
+  function formatDateShortWithOrdinal(d) {
     const day = d.getDate();
-    const month = d.toLocaleString("en-GB", { month: "long" });
+    const month = d.toLocaleString("en-GB", { month: "short" }); // Jan, Feb...
     const year = d.getFullYear();
     return `${day}${ordinal(day)} ${month} ${year}`;
   }
@@ -138,8 +138,9 @@
 
   let feedbackMap = {};        // { [eventIdx]: "G"|"Y"|"B" }
   let correctPosMap = {};      // { [eventIdx]: number } (kept for compatibility)
+  let placedMap = {};          // { [eventIdx]: number } 1..6 (still used for grey “correct position” badges)
 
-  let placedMap = {};          // { [eventIdx]: number } 1..6 (ever-green)
+  // ✅ displayOrder is now the sole driver of in-play ordering
   let displayOrder = [];       // visual order [eventIdx..]
 
   const btnEls = new Map();    // key=eventIdx string -> button element
@@ -149,7 +150,7 @@
   let gameNumber = 1;
   let puzzleDateKey = activeDateKey;
 
-  // ✅ Persisted per-day rule sentence
+  // Persisted per-day rule sentence
   let puzzleRule = "Put these in order.";
 
   // UI helpers
@@ -171,10 +172,11 @@
     el.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
   }
 
+  // ✅ meta format matches archive: "#1, 5th Jan 2026"
   function setMeta() {
     const el = $("meta");
     if (!el) return;
-    el.textContent = `${formatDateWithOrdinal(activeDateObj)} · Game ${gameNumber}`;
+    el.textContent = `#${gameNumber}, ${formatDateShortWithOrdinal(activeDateObj)}`;
   }
 
   // Modal & menu wiring
@@ -247,9 +249,11 @@
       feedbackMap = state.feedbackMap && typeof state.feedbackMap === "object" ? state.feedbackMap : {};
       correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
       placedMap = state.placedMap && typeof state.placedMap === "object" ? state.placedMap : {};
+
+      // if not saved, default to natural index order
       displayOrder = Array.isArray(state.displayOrder) && state.displayOrder.length === 6
         ? state.displayOrder
-        : events.map((_, i) => i);
+        : (events.map((_, i) => i));
 
       return true;
     } catch {
@@ -366,8 +370,13 @@
         if (currentPick.includes(idx)) return;
 
         currentPick.push(idx);
-        saveState();
 
+        // ✅ On the 6th pick, reorder into the player’s chosen order immediately
+        if (currentPick.length === 6) {
+          displayOrder = currentPick.slice();
+        }
+
+        saveState();
         updateButtonsAndOrder();
 
         if (currentPick.length === 6) {
@@ -388,24 +397,24 @@
         .map(x => x.idx);
     }
 
-    const fixed = Array(6).fill(null);
-    Object.keys(placedMap || {}).forEach(k => {
-      const idx = Number(k);
-      const pos = Number(placedMap[k]);
-      if (!Number.isNaN(idx) && pos >= 1 && pos <= 6) fixed[pos - 1] = idx;
+    // ✅ in-play ordering always follows displayOrder
+    const base = (Array.isArray(displayOrder) && displayOrder.length === 6)
+      ? displayOrder.slice()
+      : events.map((_, i) => i);
+
+    // ensure it contains 0..5 each once
+    const seen = new Set();
+    const cleaned = [];
+    base.forEach(i => {
+      if (Number.isInteger(i) && i >= 0 && i < 6 && !seen.has(i)) {
+        seen.add(i);
+        cleaned.push(i);
+      }
     });
-
-    const fixedSet = new Set(fixed.filter(x => x !== null));
-    const remaining = (displayOrder.length === 6 ? displayOrder : events.map((_, i) => i))
-      .filter(i => !fixedSet.has(i));
-
-    const next = [];
-    let r = 0;
-    for (let s = 0; s < 6; s++) {
-      if (fixed[s] !== null) next.push(fixed[s]);
-      else next.push(remaining[r++]);
+    for (let i = 0; i < 6; i++) {
+      if (!seen.has(i)) cleaned.push(i);
     }
-    return next;
+    return cleaned;
   }
 
   function updateButtonsAndOrder() {
@@ -527,6 +536,7 @@
     feedbackMap = newFeedback;
     correctPosMap = newCorrect;
 
+    // track “correct position” numbers (still shown as light grey when relevant)
     currentPick.forEach((eventIdx, pos) => {
       if (row[pos] === "G") {
         placedMap[eventIdx] = pos + 1;
@@ -565,7 +575,10 @@
   function undo() {
     if (gameOver) return;
     if (currentPick.length === 0) return;
+
     currentPick.pop();
+
+    // keep displayOrder as-is until the 6th pick finalises an attempted order
     saveState();
     updateButtonsAndOrder();
     setMessage("");
@@ -623,6 +636,7 @@
       correctPosMap = {};
       placedMap = {};
 
+      // start with current shuffled order
       displayOrder = events.map((_, i) => i);
 
       saveState();
@@ -692,7 +706,6 @@
       clearSavedGame();
     }
 
-    // ✅ If there’s saved state for this active date, use it and still set the subtitle.
     if (loadState()) {
       setMeta();
       setSubtitle(puzzleRule);
