@@ -1,6 +1,6 @@
 (() => {
-  const VERSION = "1.13";
-  const LAST_UPDATED = "05 Jan 2026 00:40";
+  const VERSION = "2.01";
+  const LAST_UPDATED = "05 Jan 2026 01:05";
   const $ = (id) => document.getElementById(id);
 
   function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
@@ -24,10 +24,9 @@
       default: return "th";
     }
   }
-  function formatIsoKeyNice(key) {
-    const d = new Date(`${key}T00:00:00`);
+  function formatDateShortWithOrdinal(d) {
     const day = d.getDate();
-    const month = d.toLocaleString("en-GB", { month: "long" });
+    const month = d.toLocaleString("en-GB", { month: "short" });
     const year = d.getFullYear();
     return `${day}${ordinal(day)} ${month} ${year}`;
   }
@@ -74,33 +73,19 @@
     const wrap = $("archiveList");
     if (!wrap) return;
 
-    const todayKey = isoDateKey(startOfDay(new Date()));
-
     wrap.innerHTML = "";
+
     keys.forEach((key) => {
       const dateObj = new Date(`${key}T00:00:00`);
       const gameNo = Math.max(1, daysBetween(earliestDate, dateObj) + 1);
 
-      const row = document.createElement("div");
-      row.className = "archive-item";
+      const a = document.createElement("a");
+      a.className = "archive-link";
+      a.href = `index.html?date=${encodeURIComponent(key)}`;
+      a.textContent = `#${gameNo}, ${formatDateShortWithOrdinal(dateObj)}`;
+      a.setAttribute("aria-label", `Open game ${gameNo} for ${formatDateShortWithOrdinal(dateObj)}`);
 
-      const left = document.createElement("div");
-      left.className = "archive-left";
-
-      const title = document.createElement("div");
-      title.className = "archive-date";
-      title.textContent = `${formatIsoKeyNice(key)} · Game ${gameNo}${key === todayKey ? " (Today)" : ""}`;
-      left.appendChild(title);
-
-      const link = document.createElement("a");
-      link.className = "archive-play";
-      link.href = `index.html?date=${encodeURIComponent(key)}`;
-      link.textContent = "Play";
-      link.setAttribute("aria-label", `Play puzzle for ${formatIsoKeyNice(key)}`);
-
-      row.appendChild(left);
-      row.appendChild(link);
-      wrap.appendChild(row);
+      wrap.appendChild(a);
     });
   }
 
