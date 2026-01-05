@@ -86,6 +86,13 @@
     return map;
   }
 
+  function setSubtitle(text) {
+  const el = $("subtitle");
+  if (!el) return;
+  el.innerHTML = `<strong>${text || "Put these in order."}</strong>`;
+}
+
+
   function playFlip(container, firstPositions) {
     if (!container) return;
     if (prefersReducedMotion()) return;
