@@ -15,15 +15,11 @@
   --nytYellow: #F9DF6D;
   --nytGreen: #A0C35A;
 
-  /* Map game semantics to NYT-ish */
   --blueTint: var(--nytBlue);
   --amber: var(--nytYellow);
   --green: var(--nytGreen);
 
-  /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
-
-  /* New: smaller topbar */
   --topbarBase: 56px;
 }
 
@@ -103,7 +99,6 @@ button,
   padding-right: 64px;
 }
 
-/* Logo reduced to ~2/3 size */
 .logo{
   height: 42px;
   width: auto;
@@ -160,7 +155,6 @@ button{
   cursor: pointer;
 }
 
-/* default disabled (applies to non-tile buttons) */
 button:disabled{
   opacity: 0.55;
   cursor: default;
@@ -172,19 +166,18 @@ button.secondary{
   border-color: var(--border);
 }
 
-/* Share row centred at bottom */
+/* Share row */
 .share-row{
   display: flex;
   justify-content: center;
   margin-top: 12px;
 }
 
-/* Share button: light blue, not full width */
 #share.share{
   width: auto;
   padding: 12px 18px;
   background: var(--blueTint);
-  color: var(--text);
+  color: #000;
   border: 1px solid var(--border);
   border-radius: 14px;
 }
@@ -197,43 +190,53 @@ button.secondary{
   margin-top: 12px;
 }
 
-/* Reorder animation (FLIP) */
+/* Event tiles */
 .event-btn{
   transition: transform 220ms ease, background-color 160ms ease;
   will-change: transform;
 
   background: var(--blueTint);
-  border: none;               /* ✅ no coloured borders */
+  border: none;
   border-radius: 14px;
 
   padding: 12px 12px;
-  color: #000000;             /* ✅ force true black text */
+  color: #000;
   font-size: 15px;
-  text-align: left;
 
   display: flex;
-  align-items: flex-start;
+  align-items: center;              /* ✅ vertically centred content */
   justify-content: space-between;
   gap: 10px;
 
   min-height: auto;
 }
 
+/* Centre all tile text */
 .event-left{
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1 1 auto;
+
+  align-items: center;              /* ✅ horizontal centring */
+  justify-content: center;          /* ✅ vertical centring */
+  text-align: center;               /* ✅ centre text */
 }
 
 .event-title{
   font-weight: 800;
+  line-height: 1.25;
+  color: #000;
+
+  /* wrapping */
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  line-height: 1.25;
   word-break: break-word;
   overflow-wrap: anywhere;
-  color: #000000;             /* ✅ ensure black */
+
+  /* ✅ encourage balanced wrapping where supported */
+  text-wrap: balance;
 }
 
 .event-value{
@@ -241,17 +244,18 @@ button.secondary{
   font-size: 13px;
   color: rgba(0, 0, 0, 0.72);
   font-weight: 400;
+  white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  white-space: normal;
+  text-wrap: balance;
 }
 
-/* Selected (in current pick) */
+/* Selected */
 .event-btn.selected{
   box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.10) inset;
 }
 
-/* ✅ tiles should not “grey out” when disabled */
+/* tiles should not grey out */
 .event-btn:disabled{
   opacity: 1;
   cursor: default;
@@ -264,7 +268,6 @@ button.secondary{
   height: 34px;
   border-radius: 999px;
 
-  margin-top: 2px;
   flex: 0 0 auto;
 
   display: inline-flex;
@@ -273,7 +276,7 @@ button.secondary{
 
   font-weight: 800;
   font-size: 14px;
-  color: #000000;
+  color: #000;
 
   background: rgba(255,255,255,0.68);
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -283,32 +286,22 @@ button.secondary{
   text-align: center;
 }
 
-/* Correct-position badge styling (light grey number) */
 .choice-badge.badge-correct{
   color: #9ca3af;
   border-color: rgba(15, 23, 42, 0.12);
   background: rgba(255,255,255,0.78);
 }
 
-/* Feedback styling — fill only */
-.event-btn.fb-blue{
-  background: var(--blueTint);
-}
+/* Feedback fills */
+.event-btn.fb-blue{ background: var(--blueTint); }
+.event-btn.fb-yellow{ background: var(--amber); }
+.event-btn.fb-green{ background: var(--green); }
 
-.event-btn.fb-yellow{
-  background: var(--amber);
-}
-
-.event-btn.fb-green{
-  background: var(--green);
-}
-
-/* Final reveal uses the same single green */
+/* Final reveal */
 .event-btn.final-reveal{
   background: var(--green);
 }
 
-/* Hide the badge entirely during final reveal */
 .event-btn.final-reveal .choice-badge{
   display: none;
 }
@@ -462,7 +455,7 @@ button.secondary{
   color: var(--text);
 }
 
-/* Footer build line: centred with separator line and extra gap */
+/* Footer */
 .buildline{
   margin: 22px 0 0 0;
   padding-top: 12px;
@@ -472,7 +465,14 @@ button.secondary{
   color: var(--muted);
 }
 
-/* Archive list */
+/* Archive */
+.archive-note{
+  margin: -0.4rem 0 0.9rem 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .archive-list{
   display: flex;
   flex-direction: column;
@@ -480,35 +480,17 @@ button.secondary{
   margin-top: 12px;
 }
 
-.archive-item{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: #fff;
-}
-
-.archive-left{
-  min-width: 0;
-}
-
-.archive-date{
-  font-weight: 800;
-  font-size: 14px;
-  color: var(--text);
-}
-
-.archive-play{
-  flex: 0 0 auto;
+/* clickable text lines */
+.archive-link{
+  display: block;
   text-decoration: none;
   font-weight: 800;
   font-size: 14px;
+  color: #000;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--blueTint);
-  color: #000000;
+}
+
+.archive-link:hover{
+  background: var(--panel);
 }
