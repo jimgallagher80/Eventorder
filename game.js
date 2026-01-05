@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
   // v2.2 — 2x3/3x2 grid tiles + square layout + darker selected tiles + badge bottom-right
-  const VERSION = "2.2";
+  const VERSION = "2.4";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "05 Jan 2026 17:05";
+  const LAST_UPDATED = "05 Jan 2026 18:18 GMT";
 
   const $ = (id) => document.getElementById(id);
 
