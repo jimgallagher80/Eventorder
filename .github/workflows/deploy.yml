@@ -1,0 +1,35 @@
+name: Deploy to Fasthosts (Live)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy_live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
+          # Fasthosts says your web root is HTDOCS
+          server-dir: /HTDOCS/
+
+          protocol: ftps
+          security: strict
+
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/*.map
+            **/.DS_Store
+            **/README*
+            **/*.md
