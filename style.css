@@ -22,12 +22,21 @@
   /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
 
-  /* New: smaller topbar */
+  /* Topbar */
   --topbarBase: 56px;
 
-  /* TILE SIZE (tweak this to make everything smaller/larger) */
-  --tile: 96px;            /* was effectively much bigger; try 92–100 if you want */
+  /* Tile sizing */
+  --tile: 132px;        /* bigger tiles; tweak 124–140 if you want */
   --tileGap: 12px;
+  --tileRadius: 14px;
+
+  /* Text sizing (chosen to comfortably fit up to ~16 chars on one line with padding) */
+  --titleSize: 13px;
+  --valueSize: 12px;
+
+  /* Always keep internal breathing room */
+  --tilePad: 12px;
+  --badgeSpace: 40px;   /* reserved space at bottom for badge */
 }
 
 *{ box-sizing: border-box; }
@@ -190,9 +199,8 @@ button.secondary{
 }
 
 /* ===== GRID LAYOUT =====
-   Fixed tile sizing so you can truly make them smaller.
-   3 columns by default, centred.
-   2 columns on smaller screens, centred.
+   Fixed-size squares so all tiles are identical.
+   Centred grid gives you consistent side whitespace.
 */
 .event-buttons{
   margin: 12px auto 0 auto;
@@ -201,7 +209,7 @@ button.secondary{
   grid-template-columns: repeat(3, var(--tile));
   gap: var(--tileGap);
 
-  justify-content: center; /* creates the extra side whitespace */
+  justify-content: center;
   align-content: start;
 }
 
@@ -221,13 +229,14 @@ button.secondary{
 
   background: var(--blueTint);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--tileRadius);
 
   width: var(--tile);
   aspect-ratio: 1 / 1;
 
-  /* reserve space for bottom-right badge */
-  padding: 10px 10px 40px 10px;
+  /* padding + reserved space for bottom-right badge */
+  padding: var(--tilePad);
+  padding-bottom: calc(var(--badgeSpace) + 2px);
 
   color: #000;
 
@@ -236,6 +245,9 @@ button.secondary{
   justify-content: center;
 
   text-align: center;
+
+  /* never let contents touch edges */
+  overflow: hidden;
 }
 
 /* Darken selected tile (works over any colour) */
@@ -266,35 +278,34 @@ button.secondary{
   line-height: 1.15;
   color: #000;
 
-  /* slightly smaller; constrained by tile width */
-  font-size: 12px;
+  font-size: var(--titleSize);
 
   white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
 
-  /* wrapping behaviour */
-  overflow-wrap: anywhere;
+  /* CRITICAL: never split a word across lines */
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 
-  /* Encourage nicer multi-line breaks (reduces orphan 1-word lines in many cases) */
+  /* better line breaks where supported */
   text-wrap: balance;
-
-  /* Optional: hyphenation can help in some browsers; safe to include */
-  hyphens: auto;
 }
 
 /* Value reveal (final reveal only) */
 .event-value{
   margin-top: 6px;
-  font-size: 11px;
+  font-size: var(--valueSize);
   color: rgba(0, 0, 0, 0.72);
   font-weight: 400;
 
   white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
+
+  /* CRITICAL: never split a word across lines */
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+
   text-wrap: balance;
-  hyphens: auto;
 }
 
 /* tiles should not visually “grey out” */
