@@ -188,7 +188,7 @@ button.secondary{
    - switches to 2 columns on smaller screens
 */
 .event-buttons{
-  width: min(560px, 100%);
+  width: min(380px, 100%);   /* was 560px */
   margin: 12px auto 0 auto;
 
   display: grid;
@@ -196,10 +196,11 @@ button.secondary{
   gap: 12px;
 }
 
+
 /* Switch to 2 columns on smaller screens */
 @media (max-width: 520px){
   .event-buttons{
-    width: min(520px, 100%);
+    width: min(340px, 100%); /* was 520px */
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
@@ -258,7 +259,7 @@ button.secondary{
   color: #000;
 
   /* slightly smaller text, responsive */
-  font-size: clamp(12px, 2.7vw, 14px);
+  font-size: clamp(11px, 2.5vw, 13px);
 
   /* wrapping */
   white-space: normal;
