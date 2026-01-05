@@ -1,15 +1,9 @@
 (() => {
-  const VERSION = "2.01";
-  const LAST_UPDATED = "05 Jan 2026 01:05";
+  const VERSION = "2.2";
+  const LAST_UPDATED = "05 Jan 2026 17:05";
   const $ = (id) => document.getElementById(id);
 
   function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-  function isoDateKey(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
   function daysBetween(a, b) {
     const ms = 24 * 60 * 60 * 1000;
     return Math.floor((startOfDay(b) - startOfDay(a)) / ms);
@@ -113,7 +107,6 @@
       const earliestKey = keys[0];
       const earliestDate = new Date(`${earliestKey}T00:00:00`);
 
-      // newest first
       const newestFirst = keys.slice().reverse();
 
       if (msg) msg.textContent = "";
