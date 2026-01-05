@@ -182,33 +182,62 @@ button.secondary{
   border-radius: 14px;
 }
 
-/* Event option buttons */
+/* ===== GRID LAYOUT =====
+   - centred “board” within the page (more inset than main padding)
+   - 3 columns by default
+   - switches to 2 columns on smaller screens
+*/
 .event-buttons{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
+  width: min(560px, 100%);
+  margin: 12px auto 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-/* Event tiles */
+/* Switch to 2 columns on smaller screens */
+@media (max-width: 520px){
+  .event-buttons{
+    width: min(520px, 100%);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+/* Event tiles (square) */
 .event-btn{
+  position: relative;
+
   transition: transform 220ms ease, background-color 160ms ease;
   will-change: transform;
 
   background: var(--blueTint);
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;          /* slightly rounded */
 
-  padding: 12px 12px;
+  aspect-ratio: 1 / 1;          /* fixed square */
+
+  /* reserve space for bottom-right badge */
+  padding: 12px 12px 42px 12px;
+
   color: #000;
-  font-size: 15px;
 
   display: flex;
-  align-items: center;              /* ✅ vertically centred content */
-  justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
 
-  min-height: auto;
+  text-align: center;
+}
+
+/* Darken selected tile (works over any colour) */
+.event-btn.selected::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(0,0,0,0.14); /* “few shades darker” */
+  pointer-events: none;
 }
 
 /* Centre all tile text */
@@ -216,17 +245,20 @@ button.secondary{
   display: flex;
   flex-direction: column;
   min-width: 0;
-  flex: 1 1 auto;
+  width: 100%;
 
-  align-items: center;              /* ✅ horizontal centring */
-  justify-content: center;          /* ✅ vertical centring */
-  text-align: center;               /* ✅ centre text */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .event-title{
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.18;
   color: #000;
+
+  /* slightly smaller text, responsive */
+  font-size: clamp(12px, 2.7vw, 14px);
 
   /* wrapping */
   white-space: normal;
@@ -235,61 +267,62 @@ button.secondary{
   word-break: break-word;
   overflow-wrap: anywhere;
 
-  /* ✅ encourage balanced wrapping where supported */
+  /* encourage balanced wrapping where supported */
   text-wrap: balance;
 }
 
 .event-value{
-  margin-top: 4px;
-  font-size: 13px;
+  margin-top: 6px;
+  font-size: clamp(11px, 2.4vw, 13px);
   color: rgba(0, 0, 0, 0.72);
   font-weight: 400;
+
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
   text-wrap: balance;
 }
 
-/* Selected */
-.event-btn.selected{
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.10) inset;
-}
-
-/* tiles should not grey out */
+/* tiles should not visually “grey out” */
 .event-btn:disabled{
   opacity: 1;
   cursor: default;
 }
 
-/* Choice badge */
+/* Choice badge (bottom-right circle) */
 .choice-badge{
-  min-width: 34px;
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
 
-  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   font-weight: 800;
-  font-size: 14px;
+  font-size: 13px;
   color: #000;
 
-  background: rgba(255,255,255,0.68);
+  background: rgba(255,255,255,0.72);
   border: 1px solid rgba(15, 23, 42, 0.12);
 
   line-height: 1;
   padding: 0;
   text-align: center;
+
+  /* ensure it sits above the selected darken overlay */
+  z-index: 2;
 }
 
+/* Correct-position badge styling (light grey number) */
 .choice-badge.badge-correct{
   color: #9ca3af;
   border-color: rgba(15, 23, 42, 0.12);
-  background: rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.82);
 }
 
 /* Feedback fills */
@@ -302,6 +335,7 @@ button.secondary{
   background: var(--green);
 }
 
+/* Hide badge on final reveal */
 .event-btn.final-reveal .choice-badge{
   display: none;
 }
@@ -480,7 +514,6 @@ button.secondary{
   margin-top: 12px;
 }
 
-/* clickable text lines */
 .archive-link{
   display: block;
   text-decoration: none;
