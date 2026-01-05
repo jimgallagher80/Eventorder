@@ -2,15 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Archive — Order These</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Order These — Archive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="stylesheet" href="style.css?v=114" />
 </head>
+
 <body>
-  <main style="max-width:680px;margin:0 auto;padding:18px 14px;">
-    <h1>Archive</h1>
-    <p>Coming soon.</p>
-    <p><a href="./">Back to today’s puzzle</a></p>
+  <header class="topbar">
+    <div class="left-actions">
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
+        <img src="menu.PNG" alt="" class="icon-img"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" style="display:none;">☰</span>
+      </button>
+    </div>
+
+    <div class="brand">
+      <img src="logo.PNG" alt="Order These" class="logo"
+           onerror="this.style.display='none'; document.getElementById('logoText').style.display='block';" />
+      <div id="logoText" class="logo-text" style="display:none;">Order These</div>
+    </div>
+  </header>
+
+  <nav id="menuDropdown" class="menu" hidden>
+    <a class="menu-item" href="index.html">Today</a>
+    <a class="menu-item" href="archive.html">Archive</a>
+    <a class="menu-item" href="feedback.html">Feedback</a>
+    <a class="menu-item" href="about.html">About</a>
+  </nav>
+
+  <main>
+    <p class="meta">Archive</p>
+    <p class="subtitle"><strong>All available puzzle dates.</strong></p>
+
+    <p id="archiveMessage" class="message"></p>
+
+    <div id="archiveList" class="archive-list"></div>
+
+    <p id="buildLine" class="buildline"></p>
   </main>
+
+  <script src="archive.js?v=1" defer></script>
 </body>
 </html>
