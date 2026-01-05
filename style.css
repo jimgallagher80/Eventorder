@@ -19,8 +19,15 @@
   --amber: var(--nytYellow);
   --green: var(--nytGreen);
 
+  /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
+
+  /* New: smaller topbar */
   --topbarBase: 56px;
+
+  /* TILE SIZE (tweak this to make everything smaller/larger) */
+  --tile: 96px;            /* was effectively much bigger; try 92–100 if you want */
+  --tileGap: 12px;
 }
 
 *{ box-sizing: border-box; }
@@ -96,7 +103,7 @@ button,
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 64px;
+  padding-right: 64px; /* balances left buttons visually */
 }
 
 .logo{
@@ -166,7 +173,7 @@ button.secondary{
   border-color: var(--border);
 }
 
-/* Share row */
+/* Share row centred at bottom */
 .share-row{
   display: flex;
   justify-content: center;
@@ -183,26 +190,25 @@ button.secondary{
 }
 
 /* ===== GRID LAYOUT =====
-   - centred “board” within the page (more inset than main padding)
-   - 3 columns by default
-   - switches to 2 columns on smaller screens
+   Fixed tile sizing so you can truly make them smaller.
+   3 columns by default, centred.
+   2 columns on smaller screens, centred.
 */
 .event-buttons{
-  width: min(380px, 100%);   /* was 560px */
   margin: 12px auto 0 auto;
 
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
+  grid-template-columns: repeat(3, var(--tile));
+  gap: var(--tileGap);
 
+  justify-content: center; /* creates the extra side whitespace */
+  align-content: start;
+}
 
 /* Switch to 2 columns on smaller screens */
 @media (max-width: 520px){
   .event-buttons{
-    width: min(340px, 100%); /* was 520px */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(2, var(--tile));
   }
 }
 
@@ -215,12 +221,13 @@ button.secondary{
 
   background: var(--blueTint);
   border: none;
-  border-radius: 12px;          /* slightly rounded */
+  border-radius: 12px;
 
-  aspect-ratio: 1 / 1;          /* fixed square */
+  width: var(--tile);
+  aspect-ratio: 1 / 1;
 
   /* reserve space for bottom-right badge */
-  padding: 12px 12px 42px 12px;
+  padding: 10px 10px 40px 10px;
 
   color: #000;
 
@@ -237,11 +244,11 @@ button.secondary{
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(0,0,0,0.14); /* “few shades darker” */
+  background: rgba(0,0,0,0.14);
   pointer-events: none;
 }
 
-/* Centre all tile text */
+/* Text wrapper */
 .event-left{
   display: flex;
   flex-direction: column;
@@ -253,28 +260,33 @@ button.secondary{
   text-align: center;
 }
 
+/* Title text */
 .event-title{
   font-weight: 800;
-  line-height: 1.18;
+  line-height: 1.15;
   color: #000;
 
-  /* slightly smaller text, responsive */
-  font-size: clamp(11px, 2.5vw, 13px);
+  /* slightly smaller; constrained by tile width */
+  font-size: 12px;
 
-  /* wrapping */
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  word-break: break-word;
+
+  /* wrapping behaviour */
   overflow-wrap: anywhere;
 
-  /* encourage balanced wrapping where supported */
+  /* Encourage nicer multi-line breaks (reduces orphan 1-word lines in many cases) */
   text-wrap: balance;
+
+  /* Optional: hyphenation can help in some browsers; safe to include */
+  hyphens: auto;
 }
 
+/* Value reveal (final reveal only) */
 .event-value{
   margin-top: 6px;
-  font-size: clamp(11px, 2.4vw, 13px);
+  font-size: 11px;
   color: rgba(0, 0, 0, 0.72);
   font-weight: 400;
 
@@ -282,6 +294,7 @@ button.secondary{
   overflow: visible;
   text-overflow: clip;
   text-wrap: balance;
+  hyphens: auto;
 }
 
 /* tiles should not visually “grey out” */
@@ -315,8 +328,7 @@ button.secondary{
   padding: 0;
   text-align: center;
 
-  /* ensure it sits above the selected darken overlay */
-  z-index: 2;
+  z-index: 2; /* above selected overlay */
 }
 
 /* Correct-position badge styling (light grey number) */
@@ -490,7 +502,7 @@ button.secondary{
   color: var(--text);
 }
 
-/* Footer */
+/* Footer build line */
 .buildline{
   margin: 22px 0 0 0;
   padding-top: 12px;
