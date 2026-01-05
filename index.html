@@ -59,7 +59,11 @@
       <div class="modal-body">
         <p><strong>Goal:</strong> Put the six items in the correct order.</p>
         <p>You have <strong>3 attempts</strong>. The game submits automatically after 6 selections.</p>
-        <p><strong>Colours:</strong> 🟩 correct, 🟨 close, 🟦 incorrect.</p>
+
+        <p><strong>Colours:</strong></p>
+        <p>🟩 <strong>Green</strong> — correct item in the correct position.</p>
+        <p>🟨 <strong>Yellow</strong> — the item is next to an item it should sit beside, but it isn’t in its final correct position.</p>
+        <p>🟦 <strong>Blue</strong> — not correct yet.</p>
 
         <div class="dev-panel">
           <div class="dev-title">Developer</div>
@@ -79,11 +83,10 @@
   <!-- Main content -->
   <main>
     <p id="meta" class="meta"></p>
-    
-<p id="subtitle" class="subtitle">
-  <strong>Put these in order.</strong></p>
 
-    
+    <!-- ✅ dynamic subtitle -->
+    <p id="subtitle" class="subtitle"><strong>Put these in order.</strong></p>
+
     <p id="message" class="message"></p>
 
     <div id="event-buttons" class="event-buttons"></div>
@@ -103,7 +106,6 @@
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <!-- IMPORTANT: this is the script line -->
   <script src="game.js?v=113" defer></script>
 </body>
 </html>
