@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v1.12 (Beta) — smaller topbar/logo; hide badge circle on final reveal
-  const VERSION = "1.12";
+  // v1.13 (Beta) — date param support + persisted rule subtitle
+  const VERSION = "1.13";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "04 Jan 2026 22:16";
+  const LAST_UPDATED = "05 Jan 2026 00:40";
 
   const $ = (id) => document.getElementById(id);
 
@@ -23,7 +23,6 @@
     else alert(msg);
   });
 
-  
   // Dev mode:
   // - one-off: ?dev=1
   // - persistent: localStorage "orderthese:dev" === "true"
@@ -68,6 +67,19 @@
     return arr;
   }
 
+  // ✅ Active date support via ?date=YYYY-MM-DD
+  const today = startOfDay(new Date());
+  const todayKey = isoDateKey(today);
+
+  const requestedDateParam = new URLSearchParams(window.location.search).get("date");
+  const requestedDateKey =
+    (requestedDateParam && /^\d{4}-\d{2}-\d{2}$/.test(requestedDateParam)) ? requestedDateParam : null;
+
+  let activeDateKey = requestedDateKey || todayKey;
+  let activeDateObj = new Date(`${activeDateKey}T00:00:00`);
+
+  let storageKey = `orderthese:${activeDateKey}`;
+
   // FLIP animation helpers
   function prefersReducedMotion() {
     try {
@@ -85,13 +97,6 @@
     });
     return map;
   }
-
-  function setSubtitle(text) {
-  const el = $("subtitle");
-  if (!el) return;
-  el.innerHTML = `<strong>${text || "Put these in order."}</strong>`;
-}
-
 
   function playFlip(container, firstPositions) {
     if (!container) return;
@@ -123,10 +128,6 @@
   }
 
   // State
-  const today = startOfDay(new Date());
-  const todayKey = isoDateKey(today);
-  const storageKey = `orderthese:${todayKey}`;
-
   let events = [];             // { text, order, value? }
   let attempts = [];           // rows (share only)
   let currentPick = [];        // indices into events
@@ -146,12 +147,22 @@
   const maxMistakes = 3;
 
   let gameNumber = 1;
-  let puzzleDateKey = todayKey;
+  let puzzleDateKey = activeDateKey;
+
+  // ✅ Persisted per-day rule sentence
+  let puzzleRule = "Put these in order.";
 
   // UI helpers
   function setMessage(text) {
     const el = $("message");
     if (el) el.textContent = text || "";
+  }
+
+  function setSubtitle(text) {
+    const el = $("subtitle");
+    if (!el) return;
+    const t = (text && String(text).trim()) ? String(text).trim() : "Put these in order.";
+    el.textContent = t;
   }
 
   function setBuildLine() {
@@ -163,7 +174,7 @@
   function setMeta() {
     const el = $("meta");
     if (!el) return;
-    el.textContent = `${formatDateWithOrdinal(today)} · Game ${gameNumber}`;
+    el.textContent = `${formatDateWithOrdinal(activeDateObj)} · Game ${gameNumber}`;
   }
 
   // Modal & menu wiring
@@ -197,6 +208,7 @@
       const state = {
         puzzleDateKey,
         gameNumber,
+        puzzleRule,
         events,
         attempts,
         currentPick,
@@ -221,8 +233,9 @@
       const state = JSON.parse(raw);
       if (!state || !Array.isArray(state.events) || state.events.length !== 6) return false;
 
-      puzzleDateKey = state.puzzleDateKey || todayKey;
+      puzzleDateKey = state.puzzleDateKey || activeDateKey;
       gameNumber = typeof state.gameNumber === "number" ? state.gameNumber : 1;
+      puzzleRule = typeof state.puzzleRule === "string" ? state.puzzleRule : "Put these in order.";
 
       events = state.events;
       attempts = Array.isArray(state.attempts) ? state.attempts : [];
@@ -455,7 +468,6 @@
       }
 
       if (badge) {
-        // Final reveal: hide badge circle entirely via CSS; also clear content.
         if (gameOver) {
           badge.textContent = "";
           badge.classList.remove("badge-correct");
@@ -567,9 +579,10 @@
     setMessage("");
   }
 
-  async function loadPuzzleForToday() {
+  async function loadPuzzleForActiveDate() {
     try {
       setMessage("Loading…");
+      setSubtitle("Put these in order.");
 
       const res = await fetch("puzzles.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
@@ -581,21 +594,23 @@
       const earliestKey = keys[0];
       const earliestDate = new Date(`${earliestKey}T00:00:00`);
 
-      puzzleDateKey = todayKey;
+      puzzleDateKey = activeDateKey;
 
       const puzzle = data[puzzleDateKey];
+      gameNumber = Math.max(1, daysBetween(earliestDate, activeDateObj) + 1);
+      setBuildLine();
+      setMeta();
+
       if (!puzzle || !Array.isArray(puzzle.events) || puzzle.events.length !== 6) {
-        gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
-        setBuildLine();
-        setMeta();
-        setMessage("No puzzle published for today yet.");
+        puzzleRule = "Put these in order.";
+        setSubtitle(puzzleRule);
+        setMessage("No puzzle published for this date.");
         updateControls();
         return;
       }
 
-      gameNumber = Math.max(1, daysBetween(earliestDate, today) + 1);
-      setBuildLine();
-      setMeta();
+      puzzleRule = puzzle.rule || "Put these in order.";
+      setSubtitle(puzzleRule);
 
       events = shuffle([...puzzle.events]);
 
@@ -615,7 +630,7 @@
       setMessage("");
     } catch (err) {
       console.error(err);
-      setMessage("Couldn’t load today’s items. Please refresh and try again.");
+      setMessage("Couldn’t load this puzzle. Please refresh and try again.");
     }
   }
 
@@ -677,14 +692,16 @@
       clearSavedGame();
     }
 
+    // ✅ If there’s saved state for this active date, use it and still set the subtitle.
     if (loadState()) {
       setMeta();
+      setSubtitle(puzzleRule);
       updateButtonsAndOrder();
       setMessage(gameOver ? "Completed." : "");
       return;
     }
 
-    loadPuzzleForToday();
+    loadPuzzleForActiveDate();
   }
 
   if (document.readyState === "loading") {
