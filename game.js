@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v2.01 — archive date support + centred tiles + reorder to chosen order on 6th selection
-  const VERSION = "2.01";
+  // v2.2 — 2x3/3x2 grid tiles + square layout + darker selected tiles + badge bottom-right
+  const VERSION = "2.2";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "05 Jan 2026 01:05";
+  const LAST_UPDATED = "05 Jan 2026 17:05";
 
   const $ = (id) => document.getElementById(id);
 
@@ -55,7 +55,7 @@
   }
   function formatDateShortWithOrdinal(d) {
     const day = d.getDate();
-    const month = d.toLocaleString("en-GB", { month: "short" }); // Jan, Feb...
+    const month = d.toLocaleString("en-GB", { month: "short" });
     const year = d.getFullYear();
     return `${day}${ordinal(day)} ${month} ${year}`;
   }
@@ -67,7 +67,7 @@
     return arr;
   }
 
-  // ✅ Active date support via ?date=YYYY-MM-DD
+  // Active date support via ?date=YYYY-MM-DD
   const today = startOfDay(new Date());
   const todayKey = isoDateKey(today);
 
@@ -137,10 +137,10 @@
   let attemptedSignatures = []; // "idx-idx-idx-idx-idx-idx"
 
   let feedbackMap = {};        // { [eventIdx]: "G"|"Y"|"B" }
-  let correctPosMap = {};      // { [eventIdx]: number } (kept for compatibility)
-  let placedMap = {};          // { [eventIdx]: number } 1..6 (still used for grey “correct position” badges)
+  let correctPosMap = {};      // { [eventIdx]: number } (compat)
+  let placedMap = {};          // { [eventIdx]: number } 1..6 (grey correct-position badges)
 
-  // ✅ displayOrder is now the sole driver of in-play ordering
+  // displayOrder drives in-play ordering
   let displayOrder = [];       // visual order [eventIdx..]
 
   const btnEls = new Map();    // key=eventIdx string -> button element
@@ -150,7 +150,7 @@
   let gameNumber = 1;
   let puzzleDateKey = activeDateKey;
 
-  // Persisted per-day rule sentence
+  // per-day rule sentence
   let puzzleRule = "Put these in order.";
 
   // UI helpers
@@ -172,7 +172,7 @@
     el.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
   }
 
-  // ✅ meta format matches archive: "#1, 5th Jan 2026"
+  // meta format matches archive: "#1, 5th Jan 2026"
   function setMeta() {
     const el = $("meta");
     if (!el) return;
@@ -250,7 +250,6 @@
       correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
       placedMap = state.placedMap && typeof state.placedMap === "object" ? state.placedMap : {};
 
-      // if not saved, default to natural index order
       displayOrder = Array.isArray(state.displayOrder) && state.displayOrder.length === 6
         ? state.displayOrder
         : (events.map((_, i) => i));
@@ -371,7 +370,7 @@
 
         currentPick.push(idx);
 
-        // ✅ On the 6th pick, reorder into the player’s chosen order immediately
+        // On the 6th pick, reorder into the player’s chosen order immediately
         if (currentPick.length === 6) {
           displayOrder = currentPick.slice();
         }
@@ -397,12 +396,10 @@
         .map(x => x.idx);
     }
 
-    // ✅ in-play ordering always follows displayOrder
     const base = (Array.isArray(displayOrder) && displayOrder.length === 6)
       ? displayOrder.slice()
       : events.map((_, i) => i);
 
-    // ensure it contains 0..5 each once
     const seen = new Set();
     const cleaned = [];
     base.forEach(i => {
@@ -536,7 +533,6 @@
     feedbackMap = newFeedback;
     correctPosMap = newCorrect;
 
-    // track “correct position” numbers (still shown as light grey when relevant)
     currentPick.forEach((eventIdx, pos) => {
       if (row[pos] === "G") {
         placedMap[eventIdx] = pos + 1;
@@ -577,8 +573,6 @@
     if (currentPick.length === 0) return;
 
     currentPick.pop();
-
-    // keep displayOrder as-is until the 6th pick finalises an attempted order
     saveState();
     updateButtonsAndOrder();
     setMessage("");
@@ -636,7 +630,6 @@
       correctPosMap = {};
       placedMap = {};
 
-      // start with current shuffled order
       displayOrder = events.map((_, i) => i);
 
       saveState();
