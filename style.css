@@ -490,3 +490,53 @@ button.secondary{
   font-size: 12px;
   color: var(--muted);
 }
+
+/* Archive list */
+.archive-list{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.archive-item{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.archive-left{
+  min-width: 0;
+}
+
+.archive-date{
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.archive-rule{
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.archive-play{
+  flex: 0 0 auto;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--blueBorder);
+  background: var(--blueTint);
+  color: var(--text);
+}
+
