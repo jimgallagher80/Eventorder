@@ -216,7 +216,7 @@
   },
 
   "2026-01-22": {
-    "rule": "Order by distance from London (km), nearest to farthest.",
+    "rule": "Order by distance from London, nearest to farthest.",
     "events": [
       { "text": "Paris", "value": "343 km", "order": 1 },
       { "text": "Rome", "value": "1434 km", "order": 2 },
@@ -228,19 +228,19 @@
   },
 
   "2026-01-23": {
-    "rule": "Order by average adult body mass (kg), lightest to heaviest.",
+    "rule": "Order by average adult body mass, lightest to heaviest.",
     "events": [
       { "text": "Domestic cat", "value": "4 kg", "order": 1 },
       { "text": "Golden retriever", "value": "30 kg", "order": 2 },
       { "text": "Grey wolf", "value": "45 kg", "order": 3 },
-      { "text": "Lion", "value": "190 kg", "order": 4 },
-      { "text": "Gorilla", "value": "160 kg", "order": 5 },
+      { "text": "Gorilla", "value": "160 kg", "order": 4 },
+      { "text": "Lion", "value": "190 kg", "order": 5 },
       { "text": "African elephant", "value": "6000 kg", "order": 6 }
     ]
   },
 
   "2026-01-24": {
-    "rule": "Order by typical kerb weight (kg), lightest to heaviest.",
+    "rule": "Order by typical kerb weight, lightest to heaviest.",
     "events": [
       { "text": "Fiat 500", "value": "1050 kg", "order": 1 },
       { "text": "Volkswagen Golf", "value": "1350 kg", "order": 2 },
@@ -252,7 +252,7 @@
   },
 
   "2026-01-25": {
-    "rule": "Order by average distance from the Sun (million km), nearest to farthest.",
+    "rule": "Order by average distance from the Sun, nearest to farthest.",
     "events": [
       { "text": "Mars", "value": "228 million km", "order": 1 },
       { "text": "Jupiter", "value": "778 million km", "order": 2 },
@@ -264,7 +264,7 @@
   },
 
   "2026-01-26": {
-    "rule": "Order by population density (people per km²), lowest to highest.",
+    "rule": "Order by population density, lowest to highest.",
     "events": [
       { "text": "Australia", "value": "3 people/km²", "order": 1 },
       { "text": "United States", "value": "36 people/km²", "order": 2 },
@@ -276,7 +276,7 @@
   },
 
   "2026-01-27": {
-    "rule": "Order by average adult height (metres), shortest to tallest.",
+    "rule": "Order by average adult height, shortest to tallest.",
     "events": [
       { "text": "Venus flytrap", "value": "0.15 m", "order": 1 },
       { "text": "Domestic cat", "value": "0.25 m", "order": 2 },
@@ -312,12 +312,12 @@
   },
 
   "2026-01-30": {
-    "rule": "Order by elevation above sea level (metres), lowest to highest.",
+    "rule": "Order by elevation above sea level, lowest to highest.",
     "events": [
       { "text": "Reykjavík", "value": "0 m", "order": 1 },
       { "text": "London", "value": "11 m", "order": 2 },
-      { "text": "Paris", "value": "35 m", "order": 3 },
-      { "text": "Rome", "value": "21 m", "order": 4 },
+      { "text": "Rome", "value": "21 m", "order": 3 },
+      { "text": "Paris", "value": "35 m", "order": 4 },
       { "text": "Madrid", "value": "667 m", "order": 5 },
       { "text": "Mexico City", "value": "2250 m", "order": 6 }
     ]
