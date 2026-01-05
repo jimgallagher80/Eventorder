@@ -11,28 +11,20 @@
   --btnSecondaryText: #0f172a;
 
   /* NYT-ish colours (by eye) */
-  --nytBlue: #A9CBEA;     /* Connections result-band blue, slightly darker */
-  --nytBlueBorder: #7FB0DA;
-
-  --nytYellow: #F9DF6D;   /* Connections result-band yellow */
-  --nytYellowBorder: #E7C94A;
-
-  --nytGreen: #A0C35A;    /* single green used everywhere */
+  --nytBlue: #A9CBEA;
+  --nytYellow: #F9DF6D;
+  --nytGreen: #A0C35A;
 
   /* Map game semantics to NYT-ish */
   --blueTint: var(--nytBlue);
-  --blueBorder: var(--nytBlueBorder);
-
   --amber: var(--nytYellow);
-  --amberBorder: var(--nytYellowBorder);
-
   --green: var(--nytGreen);
 
   /* iOS safe-area helpers */
   --safeTop: env(safe-area-inset-top);
 
   /* New: smaller topbar */
-  --topbarBase: 56px; /* was 92px */
+  --topbarBase: 56px;
 }
 
 *{ box-sizing: border-box; }
@@ -93,8 +85,6 @@ button,
   opacity: 0.6;
 }
 
-
-
 .icon-img{
   width: 25px;
   height: 25px;
@@ -110,12 +100,12 @@ button,
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 64px; /* balances left buttons visually */
+  padding-right: 64px;
 }
 
 /* Logo reduced to ~2/3 size */
 .logo{
-  height: 42px; /* was 64px */
+  height: 42px;
   width: auto;
   max-width: 100%;
   display: block;
@@ -170,6 +160,7 @@ button{
   cursor: pointer;
 }
 
+/* default disabled (applies to non-tile buttons) */
 button:disabled{
   opacity: 0.55;
   cursor: default;
@@ -194,7 +185,7 @@ button.secondary{
   padding: 12px 18px;
   background: var(--blueTint);
   color: var(--text);
-  border: 1px solid var(--blueBorder);
+  border: 1px solid var(--border);
   border-radius: 14px;
 }
 
@@ -208,15 +199,15 @@ button.secondary{
 
 /* Reorder animation (FLIP) */
 .event-btn{
-  transition: transform 220ms ease, background-color 160ms ease, border-color 160ms ease;
+  transition: transform 220ms ease, background-color 160ms ease;
   will-change: transform;
 
   background: var(--blueTint);
-  border: 2px solid var(--blueBorder);
-
+  border: none;               /* ✅ no coloured borders */
   border-radius: 14px;
+
   padding: 12px 12px;
-  color: var(--text);
+  color: #000000;             /* ✅ force true black text */
   font-size: 15px;
   text-align: left;
 
@@ -242,28 +233,28 @@ button.secondary{
   line-height: 1.25;
   word-break: break-word;
   overflow-wrap: anywhere;
+  color: #000000;             /* ✅ ensure black */
 }
-
 
 .event-value{
   margin-top: 4px;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.78);
+  color: rgba(0, 0, 0, 0.72);
   font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 /* Selected (in current pick) */
 .event-btn.selected{
-  border-color: rgba(15, 23, 42, 0.25);
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06) inset;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.10) inset;
 }
 
-/* Disabled should still be readable */
+/* ✅ tiles should not “grey out” when disabled */
 .event-btn:disabled{
-  opacity: 0.78;
+  opacity: 1;
+  cursor: default;
 }
 
 /* Choice badge */
@@ -272,7 +263,7 @@ button.secondary{
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  
+
   margin-top: 2px;
   flex: 0 0 auto;
 
@@ -282,7 +273,7 @@ button.secondary{
 
   font-weight: 800;
   font-size: 14px;
-  color: var(--text);
+  color: #000000;
 
   background: rgba(255,255,255,0.68);
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -299,26 +290,22 @@ button.secondary{
   background: rgba(255,255,255,0.78);
 }
 
-/* Feedback styling (hybrid: thicker borders) */
+/* Feedback styling — fill only */
 .event-btn.fb-blue{
   background: var(--blueTint);
-  border: 3px solid var(--blueBorder);
 }
 
 .event-btn.fb-yellow{
   background: var(--amber);
-  border: 3px solid var(--amberBorder);
 }
 
 .event-btn.fb-green{
   background: var(--green);
-  border: 3px solid var(--green);
 }
 
 /* Final reveal uses the same single green */
 .event-btn.final-reveal{
   background: var(--green);
-  border: 3px solid var(--green);
 }
 
 /* Hide the badge entirely during final reveal */
@@ -475,12 +462,6 @@ button.secondary{
   color: var(--text);
 }
 
-.dev-hint{
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
 /* Footer build line: centred with separator line and extra gap */
 .buildline{
   margin: 22px 0 0 0;
@@ -520,14 +501,6 @@ button.secondary{
   color: var(--text);
 }
 
-.archive-rule{
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
 .archive-play{
   flex: 0 0 auto;
   text-decoration: none;
@@ -535,8 +508,7 @@ button.secondary{
   font-size: 14px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid var(--blueBorder);
+  border: 1px solid var(--border);
   background: var(--blueTint);
-  color: var(--text);
+  color: #000000;
 }
-
