@@ -1,4 +1,4 @@
-<!-- /flipfive/archive.html -->
+<!-- /flipfive/archive.html (REPLACE WHOLE FILE) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,31 +8,50 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <main class="app">
-    <header class="top top-sticky">
-      <div class="title-wrap">
-        <h1 class="title">Archive</h1>
-        <p class="subtitle">Pick a day. Same puzzle for everyone.</p>
+  <header class="banner">
+    <div class="banner-inner">
+      <div class="brand">
+        <div class="brand-title">Flip Five</div>
+        <div class="brand-sub">Archive</div>
       </div>
-      <nav class="icons" aria-label="Navigation">
-        <a class="icon-btn" href="./index.html" aria-label="Back" title="Back">←</a>
-        <a class="icon-btn" href="./about.html" aria-label="About" title="About">ℹ️</a>
+
+      <nav class="banner-icons" aria-label="Navigation">
+        <a class="icon-link" href="./index.html" aria-label="Play" title="Play">
+          <img src="./play.png" alt="" class="icon" />
+        </a>
+        <a class="icon-link" href="./about.html" aria-label="About" title="About">
+          <img src="./info.png" alt="" class="icon" />
+        </a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <section class="panel">
-      <div class="controls" style="margin-bottom:10px;">
-        <button id="range30" class="btn primary" type="button">Last 30</button>
-        <button id="range90" class="btn" type="button">Last 90</button>
-        <div class="spacer"></div>
-        <a class="btn" href="./index.html">Today</a>
+  <main class="wrap">
+    <section class="game">
+      <div style="padding: 0 16px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding: 6px 0 10px;">
+          <button id="range30" class="btn share" type="button">Last 30</button>
+          <button id="range90" class="btn" type="button">Last 90</button>
+          <div style="flex:1;"></div>
+          <a class="btn" href="./index.html" style="text-decoration:none; display:inline-block; text-align:center;">Today</a>
+        </div>
+
+        <div id="archiveMsg" class="message" style="padding: 0; margin: 0; color:#555;">Loading…</div>
+
+        <div id="list" class="archive-list" aria-label="Archive list" style="margin-top:12px;"></div>
       </div>
-
-      <p id="archiveMsg" class="message" role="status" aria-live="polite">Loading…</p>
-
-      <div id="list" class="archive-list" aria-label="Archive list"></div>
     </section>
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Flip Five · Daily puzzle</span>
+      <span class="dot">·</span>
+      <a class="footer-link" href="./index.html">Play</a>
+      <span class="dot">·</span>
+      <a class="footer-link" href="./about.html">How to play</a>
+    </div>
+  </footer>
 
   <script src="./archive.js"></script>
 
@@ -41,28 +60,25 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 10px;
     }
     .day{
       display: flex;
-      align-items: centre;
+      align-items: center;
       gap: 12px;
-      padding: 12px 12px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+      padding: 12px 0;
+      border-bottom: 1px solid #ddd;
       text-decoration: none;
-      color: rgba(255,255,255,0.90);
+      color: #000;
     }
-    .dot{
+    .dotbox{
       width: 12px;
       height: 12px;
       border-radius: 3px;
-      background: rgba(255,255,255,0.25);
+      background: #ddd;
       flex: 0 0 auto;
+      border: 1px solid #000;
     }
-    .dot.solved{ background: rgba(53,208,127,0.95); }
-    .dot.played{ background: rgba(255,255,255,0.55); }
+    .dotbox.solved{ background: #000; }
     .meta{
       display: flex;
       flex-direction: column;
@@ -70,16 +86,16 @@
       flex: 1;
       min-width: 0;
     }
-    .meta .d{ font-weight: 800; }
-    .meta .s{ color: rgba(255,255,255,0.65); font-size: 12px; }
-    .right{
-      color: rgba(255,255,255,0.70);
-      font-weight: 800;
-      font-size: 12px;
-      border: 1px solid rgba(255,255,255,0.18);
-      padding: 5px 8px;
+    .meta .d{ font-weight: 900; }
+    .meta .s{ color: #666; font-size: 12px; }
+    .pill{
+      border: 1px solid #000;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      background: #fff;
+      color: #000;
       flex: 0 0 auto;
     }
   </style>
