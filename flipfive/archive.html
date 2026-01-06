@@ -1,0 +1,87 @@
+<!-- /flipfive/archive.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flip Five — Archive</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="title-wrap">
+        <h1 class="title">Archive</h1>
+        <p class="subtitle">Pick a day. Same puzzle for everyone.</p>
+      </div>
+      <nav class="icons" aria-label="Navigation">
+        <a class="icon-btn" href="./index.html" aria-label="Back" title="Back">←</a>
+        <a class="icon-btn" href="./about.html" aria-label="About" title="About">ℹ️</a>
+      </nav>
+    </header>
+
+    <section class="panel">
+      <div class="controls" style="margin-bottom:10px;">
+        <button id="range30" class="btn primary" type="button">Last 30</button>
+        <button id="range90" class="btn" type="button">Last 90</button>
+        <div class="spacer"></div>
+        <a class="btn" href="./index.html">Today</a>
+      </div>
+
+      <p id="archiveMsg" class="message" role="status" aria-live="polite">Loading…</p>
+
+      <div id="list" class="archive-list" aria-label="Archive list"></div>
+    </section>
+  </main>
+
+  <script src="./archive.js"></script>
+
+  <style>
+    .archive-list{
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .day{
+      display: flex;
+      align-items: centre;
+      gap: 12px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      text-decoration: none;
+      color: rgba(255,255,255,0.90);
+    }
+    .dot{
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.25);
+      flex: 0 0 auto;
+    }
+    .dot.solved{ background: rgba(53,208,127,0.95); }
+    .dot.played{ background: rgba(255,255,255,0.55); }
+    .meta{
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+    }
+    .meta .d{ font-weight: 800; }
+    .meta .s{ color: rgba(255,255,255,0.65); font-size: 12px; }
+    .right{
+      color: rgba(255,255,255,0.70);
+      font-weight: 800;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+    }
+  </style>
+</body>
+</html>
