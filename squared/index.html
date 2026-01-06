@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Squared</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="title-wrap">
+        <h1 class="title">Squared</h1>
+        <p class="subtitle">Watch the sequence. Tap it back in order.</p>
+      </div>
+
+      <div class="hud" aria-label="Game status">
+        <div class="pill">
+          <span class="pill-label">Level</span>
+          <span id="level" class="pill-value">1</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Best</span>
+          <span id="best" class="pill-value">—</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <button id="playBtn" class="btn primary" type="button">Play</button>
+        <button id="resetBtn" class="btn" type="button">Reset</button>
+
+        <div class="spacer"></div>
+
+        <label class="toggle">
+          <input id="soundToggle" type="checkbox" />
+          <span>Sound</span>
+        </label>
+      </div>
+
+      <p id="message" class="message" role="status" aria-live="polite">
+        Press Play to begin.
+      </p>
+
+      <div id="grid" class="grid" aria-label="Squared grid" role="group"></div>
+    </section>
+
+    <footer class="foot">
+      <small>
+        Tip: it starts easy and adds one square each level. You can get up to 16.
+      </small>
+    </footer>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
