@@ -1,4 +1,4 @@
-// /flipfive/game.js
+// /flipfive/game.js (REPLACE WHOLE FILE)
 (() => {
   const N = 5;
   const TOTAL = N * N;
@@ -6,6 +6,7 @@
   const elGrid = document.getElementById("grid");
   const elMsg = document.getElementById("message");
   const elMoves = document.getElementById("moves");
+  const elMin = document.getElementById("minMoves");
   const elBest = document.getElementById("best");
   const elTime = document.getElementById("time");
   const elDate = document.getElementById("dateLabel");
@@ -28,10 +29,131 @@
   let startState = null;        // boolean[25]
   let state = null;             // boolean[25]
   let moves = 0;
+  let minMoves = null;
 
   let timerId = null;
   let t0 = 0;
 
+  // ---------- GF(2) solver for optimal (minimum flips) ----------
+  // Solve A x = b over GF(2), return min Hamming-weight solution.
+  // For 5x5 Lights Out, nullity is small, so enumerating nullspace is cheap.
+  function buildMatrix() {
+    // A is 25x25; row r represents which presses affect tile r
+    const rows = new Array(TOTAL).fill(0);
+    for (let press = 0; press < TOTAL; press++) {
+      const affected = neighbours(press);
+      for (const tile of affected) {
+        rows[tile] ^= (1 << press);
+      }
+    }
+    return rows; // array of 25 bitmasks (25-bit)
+  }
+
+  function gaussGF2(Arows, bBits) {
+    // We maintain augmented rows: A | b
+    const rows = Arows.map((mask, i) => ({ a: mask >>> 0, b: (bBits >>> i) & 1, piv: -1 }));
+    const where = new Array(TOTAL).fill(-1);
+
+    let r = 0;
+    for (let col = 0; col < TOTAL && r < TOTAL; col++) {
+      // find pivot row with bit col set
+      let sel = -1;
+      for (let i = r; i < TOTAL; i++) {
+        if ((rows[i].a >>> col) & 1) { sel = i; break; }
+      }
+      if (sel === -1) continue;
+
+      // swap
+      const tmp = rows[r]; rows[r] = rows[sel]; rows[sel] = tmp;
+
+      where[col] = r;
+      rows[r].piv = col;
+
+      // eliminate all other rows
+      for (let i = 0; i < TOTAL; i++) {
+        if (i !== r && (((rows[i].a >>> col) & 1) === 1)) {
+          rows[i].a ^= rows[r].a;
+          rows[i].b ^= rows[r].b;
+        }
+      }
+      r++;
+    }
+
+    // check consistency: 0 = 1 rows
+    for (let i = 0; i < TOTAL; i++) {
+      if (rows[i].a === 0 && rows[i].b === 1) return null;
+    }
+
+    // one particular solution: set free vars = 0
+    let xBits = 0;
+    for (let col = 0; col < TOTAL; col++) {
+      const rowIndex = where[col];
+      if (rowIndex === -1) continue; // free
+      if (rows[rowIndex].b) xBits |= (1 << col);
+    }
+
+    // build nullspace basis: for each free var f, set f=1, others free=0, solve for pivots
+    const freeCols = [];
+    for (let col = 0; col < TOTAL; col++) if (where[col] === -1) freeCols.push(col);
+
+    const basis = [];
+    for (const f of freeCols) {
+      let v = 0;
+      v |= (1 << f);
+
+      // determine pivot variables from row equations:
+      // For each pivot col p, x_p = sum(A_row free* x_free) + b. Here b=0 (nullspace).
+      for (let p = 0; p < TOTAL; p++) {
+        const rowIndex = where[p];
+        if (rowIndex === -1) continue;
+        const rowMask = rows[rowIndex].a;
+
+        // row equation: x_p + Σ_{j!=p, row has 1 at j} x_j = 0
+        // so x_p = Σ_{j!=p, row has 1 at j} x_j
+        let sum = 0;
+        // only one free var set: f
+        if (((rowMask >>> f) & 1) === 1) sum ^= 1;
+        if (sum) v |= (1 << p);
+      }
+
+      basis.push(v >>> 0);
+    }
+
+    return { particular: xBits >>> 0, basis };
+  }
+
+  function popcount(x) {
+    x >>>= 0;
+    let c = 0;
+    while (x) { x &= (x - 1); c++; }
+    return c;
+  }
+
+  function minSolutionMoves(bBits) {
+    const A = MATRIX;
+    const res = gaussGF2(A, bBits >>> 0);
+    if (!res) return null;
+
+    const { particular, basis } = res;
+    // enumerate all solutions: x = particular XOR combination(basis)
+    let best = popcount(particular);
+    const m = basis.length;
+    const combos = 1 << m;
+
+    for (let mask = 1; mask < combos; mask++) {
+      let x = particular;
+      for (let i = 0; i < m; i++) {
+        if ((mask >>> i) & 1) x ^= basis[i];
+      }
+      const w = popcount(x);
+      if (w < best) best = w;
+    }
+    return best;
+  }
+
+  const MATRIX = buildMatrix();
+
+  // ---------- UI helpers ----------
   function setMessage(text, tone = "neutral") {
     elMsg.textContent = text;
     elMsg.style.color =
@@ -76,7 +198,6 @@
   }
 
   function hashSeed(str) {
-    // FNV-1a 32-bit
     let h = 2166136261;
     for (let i = 0; i < str.length; i++) {
       h ^= str.charCodeAt(i);
@@ -199,6 +320,7 @@
       tiles[i].classList.toggle("on", !!state[i]);
     }
     elMoves.textContent = String(moves);
+    elMin.textContent = (minMoves === null) ? "—" : String(minMoves);
 
     const b = bestFor(puzzleDate);
     elBest.textContent = (b === null) ? "—" : String(b);
@@ -207,7 +329,7 @@
   function pop(i) {
     const t = tiles[i];
     t.classList.add("pop");
-    setTimeout(() => t.classList.remove("pop"), 130);
+    setTimeout(() => t.classList.remove("pop"), 120);
   }
 
   function snapshotPayload(extra = {}) {
@@ -226,6 +348,7 @@
       startBits: stateToBits(startState),
       stateBits: stateToBits(state),
       moves,
+      minMoves: minMoves === null ? undefined : minMoves,
       seconds: Math.floor((Date.now() - t0)/1000),
       solved: !!nowSolved,
       bestMoves: bestMoves === null ? undefined : bestMoves,
@@ -233,7 +356,6 @@
       ...extra
     };
 
-    // drop undefined keys cleanly
     for (const k of Object.keys(payload)) if (payload[k] === undefined) delete payload[k];
     return payload;
   }
@@ -249,19 +371,21 @@
     window.history.replaceState({}, "", u.toString());
   }
 
+  function computeMinMovesForStart() {
+    const bits = stateToBits(startState);
+    minMoves = minSolutionMoves(bits);
+  }
+
   function generateDaily(dateStr) {
     seedStr = `flipfive:${dateStr}`;
     const rng = mulberry32(hashSeed(seedStr));
 
-    // Start from solved (all off), then apply random moves to create a guaranteed-solvable start.
     let s = new Array(TOTAL).fill(false);
 
-    // Difficulty curve: more scrambles as you go, but capped.
     const dayIndex = Math.min(3650, Math.max(0, Math.floor((hashSeed(dateStr) % 3650))));
-    const base = 9 + Math.floor(dayIndex / 365); // slowly ramps
-    const scrambles = Math.min(16, base + Math.floor(rng()*5)); // 9..16-ish
+    const base = 9 + Math.floor(dayIndex / 365);
+    const scrambles = Math.min(16, base + Math.floor(rng()*5));
 
-    // Avoid repeating the exact same move too often.
     let last = -1;
     for (let k = 0; k < scrambles; k++) {
       let i = Math.floor(rng() * TOTAL);
@@ -273,6 +397,8 @@
     startState = s.slice();
     state = s.slice();
     moves = 0;
+
+    computeMinMovesForStart();
   }
 
   function loadOrInit(dateStr) {
@@ -290,6 +416,10 @@
       startState = bitsToState(saved.startBits >>> 0);
       state = (typeof saved.stateBits === "number") ? bitsToState(saved.stateBits >>> 0) : startState.slice();
       moves = (typeof saved.moves === "number") ? saved.moves : 0;
+
+      // Prefer saved minMoves if present, otherwise compute.
+      if (typeof saved.minMoves === "number") minMoves = saved.minMoves;
+      else computeMinMovesForStart();
 
       setMessage(isSolved(state) ? "Solved. Try to beat your best." : "Continue where you left off.");
     } else {
@@ -317,17 +447,17 @@
     const solvedNow = isSolved(state);
     if (solvedNow) {
       stopTimer();
-      setMessage(`Solved in ${moves} moves.`, "ok");
+      if (minMoves !== null && moves === minMoves) setMessage(`Solved in ${moves} moves (perfect).`, "ok");
+      else setMessage(`Solved in ${moves} moves.`, "ok");
     } else {
       setMessage("Keep going.");
     }
 
     const saved = loadSaved(puzzleDate);
     const plays = (saved && typeof saved.plays === "number") ? saved.plays : 1;
-    const payload = snapshotPayload({ plays });
-    saveProgress(puzzleDate, payload);
+    saveProgress(puzzleDate, snapshotPayload({ plays }));
 
-    setTimeout(() => { locked = false; }, 80);
+    setTimeout(() => { locked = false; }, 70);
   }
 
   function resetToStart() {
@@ -357,13 +487,12 @@
     const best = (typeof saved.bestMoves === "number") ? saved.bestMoves : null;
 
     const gridEmoji = (() => {
-      // compact 5x5 render of current (or solved) state
       const s = isSolved(state) ? state : startState;
       let out = "";
       for (let r = 0; r < N; r++) {
         let line = "";
         for (let c = 0; c < N; c++) {
-          line += s[idx(r,c)] ? "🟦" : "⬛️";
+          line += s[idx(r,c)] ? "🟨" : "⬛️";
         }
         out += line + (r < N-1 ? "\n" : "");
       }
@@ -371,7 +500,8 @@
     })();
 
     const headline = `Flip Five — ${puzzleDate}`;
-    const score = best === null ? `Solved: ${isSolved(state) ? "Yes" : "No"}` : `Best: ${best} moves`;
+    const minTxt = (minMoves === null) ? "" : ` · Min ${minMoves}`;
+    const score = best === null ? `Solved: ${isSolved(state) ? "Yes" : "No"}${minTxt}` : `Best: ${best} moves${minTxt}`;
     const url = (() => {
       const u = new URL(window.location.href);
       u.searchParams.set("d", puzzleDate);
@@ -396,7 +526,7 @@
         await navigator.clipboard.writeText(text);
         setMessage("Copied to clipboard.", "ok");
       } catch {
-        setMessage("Couldn’t share. Try copying from the page URL.", "bad");
+        setMessage("Couldn’t share.", "bad");
       }
     }
   }
