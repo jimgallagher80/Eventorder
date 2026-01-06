@@ -1,4 +1,4 @@
-<!-- /flipfive/about.html -->
+<!-- /flipfive/about.html (REPLACE WHOLE FILE) -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,36 +8,48 @@
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <main class="app">
-    <header class="top top-sticky">
-      <div class="title-wrap">
-        <h1 class="title">About</h1>
-        <p class="subtitle">How to play Flip Five.</p>
+  <header class="banner">
+    <div class="banner-inner">
+      <div class="brand">
+        <div class="brand-title">Flip Five</div>
+        <div class="brand-sub">How to play</div>
       </div>
-      <nav class="icons" aria-label="Navigation">
-        <a class="icon-btn" href="./index.html" aria-label="Back" title="Back">←</a>
-        <a class="icon-btn" href="./archive.html" aria-label="Archive" title="Archive">🗓️</a>
+      <nav class="banner-icons" aria-label="Navigation">
+        <a class="icon-link" href="./archive.html" aria-label="Archive" title="Archive">
+          <img src="./archive.png" alt="" class="icon" />
+        </a>
+        <a class="icon-link" href="./index.html" aria-label="Back" title="Back">
+          <img src="./back.png" alt="" class="icon" />
+        </a>
       </nav>
-    </header>
+    </div>
+  </header>
 
-    <section class="panel">
-      <p class="message" style="margin-top:0;">
-        The goal is simple: <strong>turn every tile off</strong>.
-      </p>
-
-      <div style="color: rgba(255,255,255,0.80); line-height: 1.55;">
-        <p><strong>1)</strong> Tap any tile.</p>
-        <p><strong>2)</strong> That tile flips (on ↔ off) and so do its neighbours (up, down, left, right).</p>
-        <p><strong>3)</strong> Keep going until the whole grid is off.</p>
-        <p><strong>Daily puzzle:</strong> everyone gets the same grid each day.</p>
-        <p><strong>Archive:</strong> play any previous day and try to beat your best.</p>
+  <main class="wrap">
+    <section class="game">
+      <div style="padding: 0 16px; color:#000; line-height:1.55;">
+        <p style="margin-top:0;"><strong>Goal:</strong> turn every tile off.</p>
+        <p><strong>Tap a tile</strong> to flip it and its neighbours (up, down, left, right).</p>
+        <p><strong>Min</strong> shows the fewest possible moves for that day.</p>
+        <p><strong>Daily</strong> is the same puzzle for everyone.</p>
+        <p><strong>Archive</strong> lets you replay past days.</p>
       </div>
 
-      <div class="controls" style="margin-top:14px;">
-        <a class="btn primary" href="./index.html">Play today</a>
-        <a class="btn" href="./archive.html">Open archive</a>
+      <div class="actions" style="padding-top:14px;">
+        <a class="btn share" href="./index.html" style="text-decoration:none; display:inline-block; text-align:center;">Play</a>
+        <a class="btn" href="./archive.html" style="text-decoration:none; display:inline-block; text-align:center;">Archive</a>
       </div>
     </section>
   </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>Flip Five · Daily puzzle</span>
+      <span class="dot">·</span>
+      <a class="footer-link" href="./archive.html">Archive</a>
+      <span class="dot">·</span>
+      <a class="footer-link" href="./index.html">Play</a>
+    </div>
+  </footer>
 </body>
 </html>
