@@ -1,4 +1,4 @@
-// /flipfive/archive.js
+// /flipfive/archive.js (REPLACE WHOLE FILE)
 (() => {
   const STORAGE_PREFIX = "flipfive:";
   const listEl = document.getElementById("list");
@@ -58,13 +58,11 @@
       a.href = `./index.html?d=${encodeURIComponent(d)}`;
 
       const dot = document.createElement("div");
-      dot.className = "dot";
+      dot.className = "dotbox";
       if (saved) {
         playedCount++;
-        dot.classList.add("played");
         if (saved.solved) {
           solvedCount++;
-          dot.classList.remove("played");
           dot.classList.add("solved");
         }
       }
@@ -92,7 +90,7 @@
       meta.appendChild(ss);
 
       const right = document.createElement("div");
-      right.className = "right";
+      right.className = "pill";
       right.textContent = saved && saved.solved ? "✓" : "Play";
 
       a.appendChild(dot);
@@ -107,8 +105,10 @@
 
   function setRange(days) {
     rangeDays = days;
-    btn30.classList.toggle("primary", days === 30);
-    btn90.classList.toggle("primary", days === 90);
+    btn30.classList.toggle("share", days === 30);
+    btn90.classList.toggle("share", days === 90);
+    if (days === 30) { btn30.classList.add("share"); btn90.classList.remove("share"); }
+    if (days === 90) { btn90.classList.add("share"); btn30.classList.remove("share"); }
     render();
   }
 
