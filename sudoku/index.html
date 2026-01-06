@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sudoku</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="title-wrap">
+        <h1 class="title">Sudoku</h1>
+        <p class="subtitle">Tap a cell, then choose a number. Use Notes for pencil marks.</p>
+      </div>
+
+      <div class="hud" aria-label="Game status">
+        <div class="pill">
+          <span class="pill-label">Time</span>
+          <span id="time" class="pill-value">00:00</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Mistakes</span>
+          <span id="mistakes" class="pill-value">0</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="controls">
+        <div class="select-wrap">
+          <label for="difficulty" class="sr-only">Difficulty</label>
+          <select id="difficulty" class="select">
+            <option value="daily">Daily</option>
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <button id="newBtn" class="btn primary" type="button">New</button>
+        <button id="resetBtn" class="btn" type="button">Reset</button>
+
+        <div class="spacer"></div>
+
+        <button id="notesBtn" class="btn" type="button" aria-pressed="false">Notes</button>
+        <button id="undoBtn" class="btn" type="button">Undo</button>
+        <button id="checkBtn" class="btn" type="button">Check</button>
+      </div>
+
+      <p id="message" class="message" role="status" aria-live="polite">Loading puzzle…</p>
+
+      <div class="board-wrap">
+        <div id="board" class="board" role="grid" aria-label="Sudoku grid"></div>
+      </div>
+
+      <div class="pad" aria-label="Number pad">
+        <button class="pad-btn" data-n="1" type="button">1</button>
+        <button class="pad-btn" data-n="2" type="button">2</button>
+        <button class="pad-btn" data-n="3" type="button">3</button>
+        <button class="pad-btn" data-n="4" type="button">4</button>
+        <button class="pad-btn" data-n="5" type="button">5</button>
+        <button class="pad-btn" data-n="6" type="button">6</button>
+        <button class="pad-btn" data-n="7" type="button">7</button>
+        <button class="pad-btn" data-n="8" type="button">8</button>
+        <button class="pad-btn" data-n="9" type="button">9</button>
+        <button id="eraseBtn" class="pad-btn erase" type="button">Erase</button>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <small>
+        Tip: double-tap a number to toggle it as a note (or just use Notes mode).
+      </small>
+    </footer>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
