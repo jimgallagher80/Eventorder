@@ -1,4 +1,4 @@
-/* /flipfive/style.css */
+/* /flipfive/style.css (REPLACE WHOLE FILE) */
 :root{
   --bg: #0b0f19;
   --panel: rgba(255,255,255,0.06);
@@ -9,6 +9,10 @@
   --btn: rgba(255,255,255,0.10);
   --btn-border: rgba(255,255,255,0.18);
   --btn-hover: rgba(255,255,255,0.14);
+
+  /* Solid, high-contrast tiles (Order These vibe: clean + simple) */
+  --tile-off: rgba(255,255,255,0.14);
+  --tile-on: #ffd400;
 
   --ok: rgba(53,208,127,0.95);
   --bad: rgba(255,77,77,0.95);
@@ -21,9 +25,7 @@ html, body { height: 100%; }
 body{
   margin: 0;
   font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(1200px 900px at 20% 0%, rgba(140,120,255,0.20), transparent 55%),
-              radial-gradient(1000px 700px at 100% 40%, rgba(0,220,255,0.16), transparent 55%),
-              var(--bg);
+  background: var(--bg);
   color: var(--text);
 }
 
@@ -43,6 +45,17 @@ body{
   gap: 12px;
 }
 
+.top-sticky{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 12px 12px;
+  margin: -18px -18px 0;
+  background: rgba(11,15,25,0.92);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+}
+
 .title{ margin: 0; font-size: 28px; letter-spacing: 0.2px; }
 .subtitle{ margin: 6px 0 0; color: var(--muted); font-size: 14px; }
 
@@ -57,7 +70,6 @@ body{
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.92);
-  backdrop-filter: blur(10px);
 }
 .icon-btn:active{ transform: translateY(1px); }
 
@@ -66,27 +78,26 @@ body{
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   padding: 14px;
-  backdrop-filter: blur(10px);
 }
 
 .row{
   display: flex;
-  align-items: centre;
+  align-items: center;
   gap: 10px;
 }
 
 .date-pill{
   flex: 1;
   display: flex;
-  align-items: centre;
-  justify-content: centre;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 10px 12px;
   border-radius: 999px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.90);
-  text-align: centre;
+  text-align: center;
 }
 
 .tag{
@@ -103,7 +114,6 @@ body{
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
-  justify-content: flex-start;
 }
 
 .pill{
@@ -126,8 +136,8 @@ body{
 
 .board-wrap{
   display: flex;
-  justify-content: centre;
-  align-items: centre;
+  justify-content: center;
+  align-items: center;
   padding: 8px 0 12px;
 }
 
@@ -141,51 +151,30 @@ body{
 
 .tile{
   appearance: none;
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 2px solid rgba(255,255,255,0.18);
   border-radius: 16px;
-  background:
-    radial-gradient(60% 60% at 30% 25%, rgba(255,255,255,0.25), transparent 60%),
-    rgba(255,255,255,0.08);
-  box-shadow:
-    0 14px 40px rgba(0,0,0,0.30),
-    inset 0 1px 0 rgba(255,255,255,0.18);
+  background: var(--tile-off);
   cursor: pointer;
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
-  overflow: hidden;
-  position: relative;
+  transition: transform 90ms ease, outline-color 90ms ease, background 90ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .tile:active{ transform: translateY(1px) scale(0.99); }
 
 .tile.on{
-  filter: brightness(1.25) saturate(1.15);
-  border-color: rgba(255,255,255,0.30);
-  box-shadow:
-    0 18px 50px rgba(0,0,0,0.38),
-    0 0 0 4px rgba(255,255,255,0.06),
-    inset 0 1px 0 rgba(255,255,255,0.22);
-}
-
-.tile.on::after{
-  content:"";
-  position:absolute;
-  inset:-40%;
-  background: radial-gradient(circle at 40% 35%, rgba(0,220,255,0.60), transparent 55%);
-  transform: rotate(10deg);
-  opacity: 0.75;
-  pointer-events: none;
+  background: var(--tile-on);
+  border-color: rgba(0,0,0,0.25);
 }
 
 .tile.pop{
-  transform: scale(1.07);
+  transform: scale(1.06);
 }
 
 .controls{
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  align-items: centre;
+  align-items: center;
 }
 
 .spacer{ flex: 1; }
@@ -207,12 +196,12 @@ body{
 
 .btn.primary{
   border-color: rgba(255,255,255,0.26);
-  background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+  background: rgba(255,255,255,0.16);
 }
 
 .foot{
   color: rgba(255,255,255,0.55);
-  text-align: centre;
+  text-align: center;
   padding: 2px 6px;
 }
 
