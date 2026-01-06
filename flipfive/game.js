@@ -34,11 +34,21 @@
   let timerId = null;
   let t0 = 0;
 
-  // ---------- GF(2) solver for optimal (minimum flips) ----------
-  // Solve A x = b over GF(2), return min Hamming-weight solution.
-  // For 5x5 Lights Out, nullity is small, so enumerating nullspace is cheap.
+  // ---------- GF(2) optimal solver ----------
+  function idx(r,c){ return r*N + c; }
+
+  function neighbours(i) {
+    const r = Math.floor(i / N);
+    const c = i % N;
+    const out = [i];
+    if (r > 0) out.push(idx(r-1,c));
+    if (r < N-1) out.push(idx(r+1,c));
+    if (c > 0) out.push(idx(r,c-1));
+    if (c < N-1) out.push(idx(r,c+1));
+    return out;
+  }
+
   function buildMatrix() {
-    // A is 25x25; row r represents which presses affect tile r
     const rows = new Array(TOTAL).fill(0);
     for (let press = 0; press < TOTAL; press++) {
       const affected = neighbours(press);
@@ -46,30 +56,24 @@
         rows[tile] ^= (1 << press);
       }
     }
-    return rows; // array of 25 bitmasks (25-bit)
+    return rows;
   }
 
   function gaussGF2(Arows, bBits) {
-    // We maintain augmented rows: A | b
-    const rows = Arows.map((mask, i) => ({ a: mask >>> 0, b: (bBits >>> i) & 1, piv: -1 }));
+    const rows = Arows.map((mask, i) => ({ a: mask >>> 0, b: (bBits >>> i) & 1 }));
     const where = new Array(TOTAL).fill(-1);
 
     let r = 0;
     for (let col = 0; col < TOTAL && r < TOTAL; col++) {
-      // find pivot row with bit col set
       let sel = -1;
       for (let i = r; i < TOTAL; i++) {
         if ((rows[i].a >>> col) & 1) { sel = i; break; }
       }
       if (sel === -1) continue;
 
-      // swap
       const tmp = rows[r]; rows[r] = rows[sel]; rows[sel] = tmp;
-
       where[col] = r;
-      rows[r].piv = col;
 
-      // eliminate all other rows
       for (let i = 0; i < TOTAL; i++) {
         if (i !== r && (((rows[i].a >>> col) & 1) === 1)) {
           rows[i].a ^= rows[r].a;
@@ -79,20 +83,17 @@
       r++;
     }
 
-    // check consistency: 0 = 1 rows
     for (let i = 0; i < TOTAL; i++) {
       if (rows[i].a === 0 && rows[i].b === 1) return null;
     }
 
-    // one particular solution: set free vars = 0
     let xBits = 0;
     for (let col = 0; col < TOTAL; col++) {
       const rowIndex = where[col];
-      if (rowIndex === -1) continue; // free
+      if (rowIndex === -1) continue;
       if (rows[rowIndex].b) xBits |= (1 << col);
     }
 
-    // build nullspace basis: for each free var f, set f=1, others free=0, solve for pivots
     const freeCols = [];
     for (let col = 0; col < TOTAL; col++) if (where[col] === -1) freeCols.push(col);
 
@@ -101,17 +102,11 @@
       let v = 0;
       v |= (1 << f);
 
-      // determine pivot variables from row equations:
-      // For each pivot col p, x_p = sum(A_row free* x_free) + b. Here b=0 (nullspace).
       for (let p = 0; p < TOTAL; p++) {
         const rowIndex = where[p];
         if (rowIndex === -1) continue;
         const rowMask = rows[rowIndex].a;
-
-        // row equation: x_p + Σ_{j!=p, row has 1 at j} x_j = 0
-        // so x_p = Σ_{j!=p, row has 1 at j} x_j
         let sum = 0;
-        // only one free var set: f
         if (((rowMask >>> f) & 1) === 1) sum ^= 1;
         if (sum) v |= (1 << p);
       }
@@ -129,13 +124,13 @@
     return c;
   }
 
+  const MATRIX = buildMatrix();
+
   function minSolutionMoves(bBits) {
-    const A = MATRIX;
-    const res = gaussGF2(A, bBits >>> 0);
+    const res = gaussGF2(MATRIX, bBits >>> 0);
     if (!res) return null;
 
     const { particular, basis } = res;
-    // enumerate all solutions: x = particular XOR combination(basis)
     let best = popcount(particular);
     const m = basis.length;
     const combos = 1 << m;
@@ -151,15 +146,13 @@
     return best;
   }
 
-  const MATRIX = buildMatrix();
-
-  // ---------- UI helpers ----------
+  // ---------- misc ----------
   function setMessage(text, tone = "neutral") {
     elMsg.textContent = text;
     elMsg.style.color =
-      tone === "ok" ? "rgba(53,208,127,0.95)" :
-      tone === "bad" ? "rgba(255,77,77,0.95)" :
-      "rgba(255,255,255,0.65)";
+      tone === "ok" ? "#0a7a3b" :
+      tone === "bad" ? "#b30000" :
+      "#555";
   }
 
   function pad2(n){ return String(n).padStart(2,"0"); }
@@ -215,19 +208,6 @@
     };
   }
 
-  function idx(r,c){ return r*N + c; }
-
-  function neighbours(i) {
-    const r = Math.floor(i / N);
-    const c = i % N;
-    const out = [i];
-    if (r > 0) out.push(idx(r-1,c));
-    if (r < N-1) out.push(idx(r+1,c));
-    if (c > 0) out.push(idx(r,c-1));
-    if (c < N-1) out.push(idx(r,c+1));
-    return out;
-  }
-
   function toggleAt(s, i) {
     const ns = s.slice();
     for (const j of neighbours(i)) ns[j] = !ns[j];
@@ -246,26 +226,22 @@
     return s;
   }
 
-  function saveKey(dateStr){ return `${STORAGE_PREFIX}${dateStr}`; }
-
   function loadSaved(dateStr) {
     try {
-      const raw = localStorage.getItem(saveKey(dateStr));
+      const raw = localStorage.getItem(`${STORAGE_PREFIX}${dateStr}`);
       if (!raw) return null;
       const obj = JSON.parse(raw);
       if (!obj || typeof obj !== "object") return null;
       return obj;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
 
   function saveProgress(dateStr, payload) {
-    localStorage.setItem(saveKey(dateStr), JSON.stringify(payload));
+    localStorage.setItem(`${STORAGE_PREFIX}${dateStr}`, JSON.stringify(payload));
   }
 
   function clearProgress(dateStr) {
-    localStorage.removeItem(saveKey(dateStr));
+    localStorage.removeItem(`${STORAGE_PREFIX}${dateStr}`);
   }
 
   function bestFor(dateStr) {
@@ -308,7 +284,6 @@
       b.className = "tile";
       b.setAttribute("role", "gridcell");
       b.setAttribute("aria-label", `Tile ${i+1}`);
-      b.dataset.i = String(i);
       b.addEventListener("click", () => onTile(i));
       elGrid.appendChild(b);
       tiles.push(b);
@@ -316,12 +291,9 @@
   }
 
   function render() {
-    for (let i = 0; i < TOTAL; i++) {
-      tiles[i].classList.toggle("on", !!state[i]);
-    }
+    for (let i = 0; i < TOTAL; i++) tiles[i].classList.toggle("on", !!state[i]);
     elMoves.textContent = String(moves);
     elMin.textContent = (minMoves === null) ? "—" : String(minMoves);
-
     const b = bestFor(puzzleDate);
     elBest.textContent = (b === null) ? "—" : String(b);
   }
@@ -329,7 +301,7 @@
   function pop(i) {
     const t = tiles[i];
     t.classList.add("pop");
-    setTimeout(() => t.classList.remove("pop"), 120);
+    setTimeout(() => t.classList.remove("pop"), 110);
   }
 
   function snapshotPayload(extra = {}) {
@@ -348,7 +320,7 @@
       startBits: stateToBits(startState),
       stateBits: stateToBits(state),
       moves,
-      minMoves: minMoves === null ? undefined : minMoves,
+      minMoves,
       seconds: Math.floor((Date.now() - t0)/1000),
       solved: !!nowSolved,
       bestMoves: bestMoves === null ? undefined : bestMoves,
@@ -372,8 +344,7 @@
   }
 
   function computeMinMovesForStart() {
-    const bits = stateToBits(startState);
-    minMoves = minSolutionMoves(bits);
+    minMoves = minSolutionMoves(stateToBits(startState));
   }
 
   function generateDaily(dateStr) {
@@ -417,16 +388,14 @@
       state = (typeof saved.stateBits === "number") ? bitsToState(saved.stateBits >>> 0) : startState.slice();
       moves = (typeof saved.moves === "number") ? saved.moves : 0;
 
-      // Prefer saved minMoves if present, otherwise compute.
       if (typeof saved.minMoves === "number") minMoves = saved.minMoves;
       else computeMinMovesForStart();
 
       setMessage(isSolved(state) ? "Solved. Try to beat your best." : "Continue where you left off.");
     } else {
       generateDaily(puzzleDate);
-      setMessage("Clear the grid. Good luck.");
-      const payload = snapshotPayload({ plays: 1 });
-      saveProgress(puzzleDate, payload);
+      setMessage("Clear the grid.");
+      saveProgress(puzzleDate, snapshotPayload({ plays: 1 }));
     }
 
     startTimer();
@@ -435,10 +404,9 @@
 
   function onTile(i) {
     if (locked) return;
-
     locked = true;
-    pop(i);
 
+    pop(i);
     state = toggleAt(state, i);
     moves += 1;
 
@@ -457,16 +425,15 @@
     const plays = (saved && typeof saved.plays === "number") ? saved.plays : 1;
     saveProgress(puzzleDate, snapshotPayload({ plays }));
 
-    setTimeout(() => { locked = false; }, 70);
+    setTimeout(() => { locked = false; }, 60);
   }
 
   function resetToStart() {
-    if (!startState) return;
     state = startState.slice();
     moves = 0;
     startTimer();
     render();
-    setMessage("Reset to today’s start.");
+    setMessage("Reset.");
     const saved = loadSaved(puzzleDate);
     const plays = (saved && typeof saved.plays === "number") ? saved.plays : 1;
     saveProgress(puzzleDate, snapshotPayload({ plays }));
@@ -478,7 +445,7 @@
     startTimer();
     moves = 0;
     render();
-    setMessage("Restarted fresh.");
+    setMessage("Restarted.");
     saveProgress(puzzleDate, snapshotPayload({ plays: 1 }));
   }
 
@@ -491,9 +458,7 @@
       let out = "";
       for (let r = 0; r < N; r++) {
         let line = "";
-        for (let c = 0; c < N; c++) {
-          line += s[idx(r,c)] ? "🟨" : "⬛️";
-        }
+        for (let c = 0; c < N; c++) line += s[idx(r,c)] ? "⬛️" : "⬜️";
         out += line + (r < N-1 ? "\n" : "");
       }
       return out;
@@ -501,14 +466,14 @@
 
     const headline = `Flip Five — ${puzzleDate}`;
     const minTxt = (minMoves === null) ? "" : ` · Min ${minMoves}`;
-    const score = best === null ? `Solved: ${isSolved(state) ? "Yes" : "No"}${minTxt}` : `Best: ${best} moves${minTxt}`;
+    const scoreLine = `Moves: ${moves}${minTxt}` + (best === null ? "" : ` · Best ${best}`);
     const url = (() => {
       const u = new URL(window.location.href);
       u.searchParams.set("d", puzzleDate);
       return u.toString();
     })();
 
-    return `${headline}\n${score}\n\n${gridEmoji}\n\n${url}`;
+    return `${headline}\n${scoreLine}\n\n${gridEmoji}\n\n${url}`;
   }
 
   async function onShare() {
@@ -519,12 +484,12 @@
         setMessage("Shared.", "ok");
       } else {
         await navigator.clipboard.writeText(text);
-        setMessage("Copied to clipboard.", "ok");
+        setMessage("Copied.", "ok");
       }
     } catch {
       try {
         await navigator.clipboard.writeText(text);
-        setMessage("Copied to clipboard.", "ok");
+        setMessage("Copied.", "ok");
       } catch {
         setMessage("Couldn’t share.", "bad");
       }
@@ -550,8 +515,6 @@
   btnPrev.addEventListener("click", onPrev);
   btnNext.addEventListener("click", onNext);
 
-  // Boot
   buildGrid();
-  const initial = parseDateParam() || todayUTC();
-  loadOrInit(initial);
+  loadOrInit(parseDateParam() || todayUTC());
 })();
