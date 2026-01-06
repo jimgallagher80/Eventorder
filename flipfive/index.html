@@ -16,4 +16,47 @@
       </div>
 
       <nav class="icons" aria-label="Navigation">
-        <a class="icon-btn" href="./archive.html" aria-label="Archive" title="Archive
+        <a class="icon-btn" href="./archive.html" aria-label="Archive" title="Archive">🗓️</a>
+        <a class="icon-btn" href="./about.html" aria-label="About" title="About">ℹ️</a>
+      </nav>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <button id="prevDay" class="btn" type="button" aria-label="Previous day">←</button>
+        <div class="date-pill" aria-label="Puzzle date">
+          <span id="dateLabel">—</span>
+          <span id="tagLabel" class="tag">Daily</span>
+        </div>
+        <button id="nextDay" class="btn" type="button" aria-label="Next day">→</button>
+      </div>
+
+      <div class="hud">
+        <div class="pill"><span class="pill-label">Moves</span><span id="moves" class="pill-value">0</span></div>
+        <div class="pill"><span class="pill-label">Min</span><span id="minMoves" class="pill-value">—</span></div>
+        <div class="pill"><span class="pill-label">Best</span><span id="best" class="pill-value">—</span></div>
+        <div class="pill"><span class="pill-label">Time</span><span id="time" class="pill-value">00:00</span></div>
+      </div>
+
+      <p id="message" class="message" role="status" aria-live="polite">Loading…</p>
+
+      <div class="board-wrap">
+        <div id="grid" class="grid" role="grid" aria-label="Flip Five grid"></div>
+      </div>
+
+      <div class="controls">
+        <button id="resetBtn" class="btn" type="button">Reset</button>
+        <button id="restartBtn" class="btn" type="button">Restart</button>
+        <div class="spacer"></div>
+        <button id="shareBtn" class="btn primary" type="button">Share</button>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <small>Tap a tile to flip it and its neighbours. Same puzzle for everyone each day.</small>
+    </footer>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
