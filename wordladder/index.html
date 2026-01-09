@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>RungRush — Daily Word Ladder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">🪜</span>
+    <div>
+      <div class="title">RungRush</div>
+      <div class="subtitle">Daily Word Ladder</div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card">
+    <div class="meta">
+      <span id="date"></span>
+      <span>Steps: <strong id="steps">0</strong></span>
+      <span>Best: <strong id="best">—</strong></span>
+    </div>
+
+    <div class="ladder" id="ladder"></div>
+
+    <div class="inputRow">
+      <input
+        id="wordInput"
+        type="text"
+        maxlength="4"
+        placeholder="Next word"
+        autocapitalize="none"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button id="addBtn">Add</button>
+    </div>
+
+    <div class="controls">
+      <button id="undoBtn">Undo</button>
+      <button id="resetBtn">Reset</button>
+      <button id="shareBtn">Share</button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <footer class="footer">
+    One letter change per step • Valid English words only
+  </footer>
+</main>
+
+<script src="words.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
