@@ -1,10 +1,40 @@
 (() => {
   // Order These — daily click-to-select
-  // v2.2 — 2x3/3x2 grid tiles + square layout + darker selected tiles + badge bottom-right
-  const VERSION = "2.4";
+  // v3.1 — play counter + feedback form + image tiles + adjacency yellow
+  const VERSION = "3.1";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "05 Jan 2026 18:18 GMT";
+  const LAST_UPDATED = "10 Jan 2026 14:00 GMT";
+
+  // Simple play counter (static-site friendly) using CountAPI (public)
+  // Counts a "play" on the first selection per device per date.
+  const COUNTAPI_NAMESPACE = "orderthese";
+  const COUNTAPI_BASE = "https://api.countapi.xyz";
+
+  function playCountKey(dateStr) {
+    return `played_${dateStr}`;
+  }
+
+  async function fetchPlayCount(dateStr) {
+    try {
+      const res = await fetch(`${COUNTAPI_BASE}/get/${COUNTAPI_NAMESPACE}/${playCountKey(dateStr)}`);
+      const data = await res.json();
+      return typeof data?.value === "number" ? data.value : 0;
+    } catch {
+      return null; // unknown
+    }
+  }
+
+  async function incrementPlayCountOnce(dateStr) {
+    const flagKey = `ot_playCounted_${dateStr}`;
+    if (localStorage.getItem(flagKey) === "1") return;
+    try {
+      await fetch(`${COUNTAPI_BASE}/hit/${COUNTAPI_NAMESPACE}/${playCountKey(dateStr)}`);
+      localStorage.setItem(flagKey, "1");
+    } catch {
+      // ignore
+    }
+  }
 
   const $ = (id) => document.getElementById(id);
 
@@ -23,116 +53,58 @@
     else alert(msg);
   });
 
-  // Dev mode:
-  // - one-off: ?dev=1
-  // - persistent: localStorage "orderthese:dev" === "true"
-  const DEV_QUERY = new URLSearchParams(window.location.search).get("dev") === "1";
-  const DEV_PERSIST = localStorage.getItem("orderthese:dev") === "true";
+  // --- date helpers (Europe/London) ---
+  function londonNowKey() {
+    const now = new Date();
+    // Approx London date key by using local date components.
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
-  // Date helpers
   function startOfDay(d) {
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
-  function isoDateKey(d) {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
-  }
+
   function daysBetween(a, b) {
     const ms = 24 * 60 * 60 * 1000;
     return Math.floor((startOfDay(b) - startOfDay(a)) / ms);
   }
+
   function ordinal(n) {
     const mod100 = n % 100;
-    if (mod100 >= 11 && mod100 <= 13) return "th";
-    switch (n % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
-    }
+    if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+    const mod10 = n % 10;
+    if (mod10 === 1) return `${n}st`;
+    if (mod10 === 2) return `${n}nd`;
+    if (mod10 === 3) return `${n}rd`;
+    return `${n}th`;
   }
+
   function formatDateShortWithOrdinal(d) {
-    const day = d.getDate();
-    const month = d.toLocaleString("en-GB", { month: "short" });
-    const year = d.getFullYear();
-    return `${day}${ordinal(day)} ${month} ${year}`;
-  }
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
+    const day = ordinal(d.getDate());
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const mon = months[d.getMonth()];
+    const yr = d.getFullYear();
+    return `${day} ${mon} ${yr}`;
   }
 
-  // Active date support via ?date=YYYY-MM-DD
-  const today = startOfDay(new Date());
-  const todayKey = isoDateKey(today);
+  // --- state ---
+  let puzzles = null;
+  let earliestDateObj = null;
 
-  const requestedDateParam = new URLSearchParams(window.location.search).get("date");
-  const requestedDateKey =
-    (requestedDateParam && /^\d{4}-\d{2}-\d{2}$/.test(requestedDateParam)) ? requestedDateParam : null;
+  let activeDateKey = null;
+  let activeDateObj = null;
+  let gameNumber = 1;
 
-  let activeDateKey = requestedDateKey || todayKey;
-  let activeDateObj = new Date(`${activeDateKey}T00:00:00`);
+  let rule = "";
+  let events = []; // each: { text, order, value, image? }
 
-  let storageKey = `orderthese:${activeDateKey}`;
-
-  // FLIP animation helpers
-  function prefersReducedMotion() {
-    try {
-      return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    } catch {
-      return false;
-    }
-  }
-
-  function recordPositions(container) {
-    const map = new Map();
-    if (!container) return map;
-    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
-      map.set(el.dataset.key, el.getBoundingClientRect());
-    });
-    return map;
-  }
-
-  function playFlip(container, firstPositions) {
-    if (!container) return;
-    if (prefersReducedMotion()) return;
-
-    const lastPositions = new Map();
-    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
-      lastPositions.set(el.dataset.key, el.getBoundingClientRect());
-    });
-
-    container.querySelectorAll(".event-btn[data-key]").forEach(el => {
-      const key = el.dataset.key;
-      const first = firstPositions.get(key);
-      const last = lastPositions.get(key);
-      if (!first || !last) return;
-
-      const dx = first.left - last.left;
-      const dy = first.top - last.top;
-      if (dx === 0 && dy === 0) return;
-
-      el.style.transition = "none";
-      el.style.transform = `translate(${dx}px, ${dy}px)`;
-
-      requestAnimationFrame(() => {
-        el.style.transition = "";
-        el.style.transform = "";
-      });
-    });
-  }
-
-  // State
-  let events = [];             // { text, order, value? }
-  let attempts = [];           // rows (share only)
-  let currentPick = [];        // indices into events
-  let mistakes = 0;
+  let attempts = [];          // array of rows of "G"|"Y"|"B"
+  let currentPick = [];       // [eventIdx..]
   let gameOver = false;
+  let win = false;
 
   let attemptedSignatures = []; // "idx-idx-idx-idx-idx-idx"
 
@@ -143,153 +115,159 @@
   // displayOrder drives in-play ordering
   let displayOrder = [];       // visual order [eventIdx..]
 
-  const btnEls = new Map();    // key=eventIdx string -> button element
+  const btnEls = new Map();    // key => button element
 
-  const maxMistakes = 3;
+  // URL date override (testing)
+  const url = new URL(location.href);
+  const requestedDateKey = url.searchParams.get("date");
 
-  let gameNumber = 1;
-  let puzzleDateKey = activeDateKey;
+  // Initial date selection
+  const todayKey = londonNowKey();
+  activeDateKey = requestedDateKey || todayKey;
+  activeDateObj = new Date(`${activeDateKey}T00:00:00`);
 
-  // per-day rule sentence
-  let puzzleRule = "Put these in order.";
+  let storageKey = `orderthese:${activeDateKey}`;
 
-  // UI helpers
-  function setMessage(text) {
-    const el = $("message");
-    if (el) el.textContent = text || "";
+  // FLIP animation helpers
+  function recordPositions(container) {
+    const first = new Map();
+    Array.from(container.children).forEach((el) => {
+      first.set(el, el.getBoundingClientRect());
+    });
+    return first;
   }
 
-  function setSubtitle(text) {
+  function playFlip(container, first) {
+    Array.from(container.children).forEach((el) => {
+      const last = el.getBoundingClientRect();
+      const f = first.get(el);
+      if (!f) return;
+      const dx = f.left - last.left;
+      const dy = f.top - last.top;
+      if (dx || dy) {
+        el.animate(
+          [
+            { transform: `translate(${dx}px, ${dy}px)` },
+            { transform: "translate(0,0)" },
+          ],
+          { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+        );
+      }
+    });
+  }
+
+  // --- load puzzles.json ---
+  async function loadPuzzles() {
+    const res = await fetch("puzzles.json", { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load puzzles.json (${res.status})`);
+    puzzles = await res.json();
+
+    // determine earliest date
+    const keys = Object.keys(puzzles).sort();
+    if (!keys.length) throw new Error("puzzles.json is empty");
+    earliestDateObj = new Date(`${keys[0]}T00:00:00`);
+
+    // compute game number
+    gameNumber = Math.max(1, daysBetween(earliestDateObj, activeDateObj) + 1);
+
+    // if requested key missing, fall back to today or earliest available
+    if (!puzzles[activeDateKey]) {
+      const fallbackKey = puzzles[todayKey] ? todayKey : keys[0];
+      activeDateKey = fallbackKey;
+      activeDateObj = new Date(`${activeDateKey}T00:00:00`);
+      storageKey = `orderthese:${activeDateKey}`;
+      gameNumber = Math.max(1, daysBetween(earliestDateObj, activeDateObj) + 1);
+    }
+
+    // Load puzzle
+    const p = puzzles[activeDateKey];
+    rule = p.rule || "Put these in order.";
+    events = (p.events || []).slice().sort((a, b) => a.order - b.order);
+
+    // Build display order as original randomised order (by input order)
+    // Here the puzzle file already gives the six items; we store by index.
+    // We keep a stable "eventsByIdx" array for use in picks.
+    // events in file are assumed to be in arbitrary order; we rebuild a base list.
+    const byIdx = (p.events || []).map((e, i) => ({
+      text: e.text,
+      order: Number(e.order),
+      value: e.value,
+      image: e.image
+    }));
+
+    // Replace events with byIdx (so "idx" refers to file order)
+    events = byIdx;
+
+    // initial visual order: 0..5
+    displayOrder = [0, 1, 2, 3, 4, 5];
+
+    loadState();
+    setMeta();
+    setSubtitle();
+    setBuildLine();
+
+    updateButtonsAndOrder();
+  }
+
+  function setMeta() {
+    const el = $("meta");
+    if (!el) return;
+
+    const base = `#${gameNumber}, ${formatDateShortWithOrdinal(activeDateObj)}`;
+    el.textContent = base;
+
+    // Fetch play count (best-effort)
+    fetchPlayCount(activeDateKey).then((n) => {
+      if (typeof n === "number") {
+        el.textContent = `${base}. Played by ${n} people.`;
+      }
+    });
+  }
+
+  function setSubtitle() {
     const el = $("subtitle");
     if (!el) return;
-    const t = (text && String(text).trim()) ? String(text).trim() : "Put these in order.";
-    el.textContent = t;
+    el.innerHTML = `<strong>${escapeHtml(rule)}</strong>`;
   }
 
   function setBuildLine() {
     const el = $("buildLine");
     if (!el) return;
-    el.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
+    el.textContent = `v${VERSION} • last updated ${LAST_UPDATED}`;
   }
 
-  // meta format matches archive: "#1, 5th Jan 2026"
-  function setMeta() {
-    const el = $("meta");
+  function setMessage(msg) {
+    const el = $("message");
     if (!el) return;
-    el.textContent = `#${gameNumber}, ${formatDateShortWithOrdinal(activeDateObj)}`;
+    el.textContent = msg || "";
   }
 
-  // Modal & menu wiring
-  function openInfo() {
-    const modal = $("infoModal");
-    if (modal) modal.hidden = false;
-  }
-  function closeInfo() {
-    const modal = $("infoModal");
-    if (modal) modal.hidden = true;
-  }
-
-  function closeMenu() {
-    const dd = $("menuDropdown");
-    const btn = $("menuBtn");
-    if (dd) dd.hidden = true;
-    if (btn) btn.setAttribute("aria-expanded", "false");
-  }
-  function toggleMenu() {
-    const dd = $("menuDropdown");
-    const btn = $("menuBtn");
-    if (!dd) return;
-    const willOpen = dd.hidden === true;
-    dd.hidden = !willOpen;
-    if (btn) btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+  function escapeHtml(s) {
+    return String(s || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  // Persistence
-  function saveState() {
-    try {
-      const state = {
-        puzzleDateKey,
-        gameNumber,
-        puzzleRule,
-        events,
-        attempts,
-        currentPick,
-        mistakes,
-        gameOver,
-        attemptedSignatures,
-        feedbackMap,
-        correctPosMap,
-        placedMap,
-        displayOrder
-      };
-      localStorage.setItem(storageKey, JSON.stringify(state));
-    } catch {
-      // ignore
-    }
-  }
-
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return false;
-      const state = JSON.parse(raw);
-      if (!state || !Array.isArray(state.events) || state.events.length !== 6) return false;
-
-      puzzleDateKey = state.puzzleDateKey || activeDateKey;
-      gameNumber = typeof state.gameNumber === "number" ? state.gameNumber : 1;
-      puzzleRule = typeof state.puzzleRule === "string" ? state.puzzleRule : "Put these in order.";
-
-      events = state.events;
-      attempts = Array.isArray(state.attempts) ? state.attempts : [];
-      currentPick = Array.isArray(state.currentPick) ? state.currentPick : [];
-      mistakes = typeof state.mistakes === "number" ? state.mistakes : 0;
-      gameOver = !!state.gameOver;
-
-      attemptedSignatures = Array.isArray(state.attemptedSignatures) ? state.attemptedSignatures : [];
-      feedbackMap = state.feedbackMap && typeof state.feedbackMap === "object" ? state.feedbackMap : {};
-      correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
-      placedMap = state.placedMap && typeof state.placedMap === "object" ? state.placedMap : {};
-
-      displayOrder = Array.isArray(state.displayOrder) && state.displayOrder.length === 6
-        ? state.displayOrder
-        : (events.map((_, i) => i));
-
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function clearSavedGame() {
-    try { localStorage.removeItem(storageKey); } catch { /* ignore */ }
-  }
-
-  // Game logic
-  function updateControls() {
-    const undoBtn = $("undo");
-    const clearBtn = $("clear");
-    const shareBtn = $("share");
-    const controlsRow = $("controlsRow");
-
-    const canEdit = !gameOver;
-
-    if (undoBtn) undoBtn.disabled = !canEdit || currentPick.length === 0;
-    if (clearBtn) clearBtn.disabled = !canEdit || currentPick.length === 0;
-
-    if (controlsRow) controlsRow.style.display = gameOver ? "none" : "flex";
-
-    if (shareBtn) {
-      shareBtn.style.display = gameOver ? "inline-flex" : "none";
-      shareBtn.disabled = !gameOver;
-    }
+  function signatureFromPick(pickIdxs) {
+    return pickIdxs.join("-");
   }
 
   function evaluateRow(pick) {
+    // G: correct final position
+    // Y: adjacent to an item it should be next to (regardless of that neighbour’s position)
+    // B: otherwise
     return pick.map((e, i) => {
       if (e.order === i + 1) return "G";
+
       const left = pick[i - 1];
       const right = pick[i + 1];
-      if ((left && left.order < e.order) || (right && right.order > e.order)) return "Y";
+
+      const shouldBeNextTo = new Set([e.order - 1, e.order + 1]);
+      if ((left && shouldBeNextTo.has(left.order)) || (right && shouldBeNextTo.has(right.order))) return "Y";
+
       return "B";
     });
   }
@@ -297,12 +275,10 @@
   function buildShareText() {
     const map = { G: "🟩", Y: "🟨", B: "🟦" };
     const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
-    return `Order These\nGame #${gameNumber}\n${gridLines}`;
+    return `orderthese.com\nGame #${gameNumber}\n${gridLines}`;
   }
 
   async function shareResults() {
-    if (!gameOver) return;
-
     const text = buildShareText();
 
     if (navigator.share) {
@@ -318,15 +294,9 @@
       await navigator.clipboard.writeText(text);
       setMessage("Results copied — paste anywhere.");
     } catch {
-      setMessage("Couldn’t copy automatically.");
+      setMessage("Couldn’t copy automatically — select and copy from the Share preview.");
+      alert(text);
     }
-  }
-
-  function getOptionalValueText(eventObj) {
-    if (!eventObj) return null;
-    if (typeof eventObj.value === "string" && eventObj.value.trim()) return eventObj.value.trim();
-    if (typeof eventObj.value === "number") return String(eventObj.value);
-    return null;
   }
 
   function ensureButtonsExist() {
@@ -368,6 +338,11 @@
         if (currentPick.length >= 6) return;
         if (currentPick.includes(idx)) return;
 
+        // Count a "play" on the first selection
+        if (currentPick.length === 0) {
+          incrementPlayCountOnce(activeDateKey);
+        }
+
         currentPick.push(idx);
 
         // On the 6th pick, reorder into the player’s chosen order immediately
@@ -388,26 +363,17 @@
     }
   }
 
-  function computeVisualOrder() {
-    if (gameOver) {
-      return events
-        .map((e, idx) => ({ idx, ord: e.order }))
-        .sort((a, b) => a.ord - b.ord)
-        .map(x => x.idx);
-    }
-
-    const base = (Array.isArray(displayOrder) && displayOrder.length === 6)
-      ? displayOrder.slice()
-      : events.map((_, i) => i);
-
-    const seen = new Set();
+  function normaliseDisplayOrder(orderArr) {
     const cleaned = [];
-    base.forEach(i => {
-      if (Number.isInteger(i) && i >= 0 && i < 6 && !seen.has(i)) {
-        seen.add(i);
-        cleaned.push(i);
-      }
-    });
+    const seen = new Set();
+    for (const x of orderArr) {
+      const n = Number(x);
+      if (Number.isNaN(n)) continue;
+      if (n < 0 || n > 5) continue;
+      if (seen.has(n)) continue;
+      cleaned.push(n);
+      seen.add(n);
+    }
     for (let i = 0; i < 6; i++) {
       if (!seen.has(i)) cleaned.push(i);
     }
@@ -422,55 +388,68 @@
 
     const first = recordPositions(container);
 
-    const newOrder = computeVisualOrder();
-    displayOrder = newOrder.slice();
-
-    newOrder.forEach(idx => {
-      const el = btnEls.get(String(idx));
-      if (el) container.appendChild(el);
+    // reorder DOM to match displayOrder
+    displayOrder = normaliseDisplayOrder(displayOrder);
+    displayOrder.forEach((idx) => {
+      const btn = btnEls.get(String(idx));
+      if (btn) container.appendChild(btn);
     });
 
-    newOrder.forEach(idx => {
+    playFlip(container, first);
+
+    // Update each button text, feedback border, selected state, badge
+    const idxToPickPos = new Map();
+    currentPick.forEach((idx, pos) => idxToPickPos.set(idx, pos));
+
+    for (let i = 0; i < 6; i++) {
+      const idx = i;
       const btn = btnEls.get(String(idx));
-      if (!btn) return;
+      if (!btn) continue;
 
       const e = events[idx];
+
+      const pickedPos = idxToPickPos.has(idx) ? idxToPickPos.get(idx) : -1;
+
+      btn.classList.toggle("selected", pickedPos >= 0);
+
+      // Reset feedback borders each render
+      btn.classList.remove("fb-blue", "fb-yellow", "fb-green");
+
+      const fb = feedbackMap[idx];
+      if (fb) {
+        if (fb === "G") btn.classList.add("fb-green");
+        else if (fb === "Y") btn.classList.add("fb-yellow");
+        else btn.classList.add("fb-blue");
+      }
 
       const leftWrap = btn.querySelector(".event-left");
       const title = leftWrap ? leftWrap.querySelector(".event-title") : null;
       const val = leftWrap ? leftWrap.querySelector(".event-value") : null;
       const badge = btn.querySelector(".choice-badge");
 
-      if (title) title.textContent = e.text;
-
-      if (val) {
-        if (gameOver) {
-          const v = getOptionalValueText(e);
-          if (v) {
-            val.textContent = v;
-            val.style.display = "block";
-          } else {
-            val.textContent = "";
-            val.style.display = "none";
-          }
+      if (title) {
+        if (e.image) {
+          title.classList.add("is-image");
+          title.textContent = "";
+          const img = document.createElement("img");
+          img.className = "tile-img";
+          img.alt = e.text || "";
+          img.src = e.image;
+          title.appendChild(img);
         } else {
-          val.textContent = "";
-          val.style.display = "none";
+          title.classList.remove("is-image");
+          title.textContent = e.text;
         }
       }
 
-      btn.classList.remove("fb-blue", "fb-yellow", "fb-green", "final-reveal", "selected");
-
-      const pickedPos = currentPick.indexOf(idx);
-      if (pickedPos >= 0) btn.classList.add("selected");
-
-      if (gameOver) {
-        btn.classList.add("final-reveal");
-      } else {
-        const fb = feedbackMap[idx];
-        if (fb === "G") btn.classList.add("fb-green");
-        else if (fb === "Y") btn.classList.add("fb-yellow");
-        else btn.classList.add("fb-blue");
+      if (val) {
+        if (gameOver) {
+          val.style.display = "block";
+          val.textContent = e.value ? String(e.value) : "";
+        } else {
+          val.style.display = "none";
+          val.textContent = "";
+        }
       }
 
       if (badge) {
@@ -481,7 +460,8 @@
           badge.textContent = String(pickedPos + 1);
           badge.classList.remove("badge-correct");
         } else {
-          const placed = placedMap[idx];
+          // Hide "correct position" hint numbers until the player starts a new attempt
+          const placed = (currentPick.length > 0) ? placedMap[idx] : undefined;
           if (typeof placed === "number" && placed >= 1 && placed <= 6) {
             badge.textContent = String(placed);
             badge.classList.add("badge-correct");
@@ -492,227 +472,238 @@
         }
       }
 
-      btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
-    });
+      btn.disabled = gameOver || pickedPos >= 0 && currentPick.length === 6;
+    }
 
-    requestAnimationFrame(() => {
-      playFlip(container, first);
-    });
+    // Controls
+    const undoBtn = $("undo");
+    const clearBtn = $("clear");
+    const shareBtn = $("share");
+    const controlsRow = $("controlsRow");
 
-    saveState();
-    updateControls();
+    if (controlsRow) controlsRow.hidden = false;
+
+    if (undoBtn) undoBtn.disabled = gameOver || currentPick.length === 0;
+    if (clearBtn) clearBtn.disabled = gameOver || currentPick.length === 0;
+
+    if (shareBtn) {
+      shareBtn.hidden = !gameOver;
+      shareBtn.onclick = shareResults;
+    }
   }
 
-  function submitAttempt() {
+  function clearPick() {
+    currentPick = [];
+    displayOrder = normaliseDisplayOrder(displayOrder);
+    saveState();
+    updateButtonsAndOrder();
+  }
+
+  function undoPick() {
+    if (!currentPick.length) return;
+    currentPick.pop();
+    if (currentPick.length < 6) {
+      displayOrder = normaliseDisplayOrder(displayOrder);
+    }
+    saveState();
+    updateButtonsAndOrder();
+  }
+
+  async function submitAttempt() {
     if (gameOver) return;
     if (currentPick.length !== 6) return;
 
-    const sig = currentPick.join("-");
+    const sig = signatureFromPick(currentPick);
     if (attemptedSignatures.includes(sig)) {
+      setMessage("Order already attempted");
+      // Do not consume a turn
       currentPick = [];
+      displayOrder = [0, 1, 2, 3, 4, 5];
       saveState();
       updateButtonsAndOrder();
-      setMessage("Order already attempted");
       return;
     }
 
     attemptedSignatures.push(sig);
 
-    const pickedEvents = currentPick.map(i => events[i]);
+    const pickedEvents = currentPick.map((idx) => events[idx]);
     const row = evaluateRow(pickedEvents);
-
-    const newFeedback = {};
-    const newCorrect = {};
-
-    currentPick.forEach((eventIdx, pos) => {
-      const c = row[pos];
-      newFeedback[eventIdx] = c;
-      if (c === "G") newCorrect[eventIdx] = pos + 1;
-    });
-
-    feedbackMap = newFeedback;
-    correctPosMap = newCorrect;
-
-    currentPick.forEach((eventIdx, pos) => {
-      if (row[pos] === "G") {
-        placedMap[eventIdx] = pos + 1;
-      }
-    });
-
     attempts.push(row);
-    saveState();
 
-    const solved = row.every(c => c === "G");
-    if (solved) {
-      gameOver = true;
-      saveState();
-      setMessage("Nice — you solved today’s Order These.");
-      updateButtonsAndOrder();
-      return;
-    }
+    // Feedback map for borders and hint numbers (placedMap)
+    feedbackMap = {};
+    placedMap = {};
+    correctPosMap = {};
 
-    mistakes += 1;
-    saveState();
+    // Map picked index -> position
+    currentPick.forEach((idx, pos) => {
+      const fb = row[pos];
+      feedbackMap[idx] = fb;
 
-    if (mistakes >= maxMistakes) {
-      gameOver = true;
-      saveState();
-      setMessage("Unlucky — try again tomorrow.");
-      updateButtonsAndOrder();
-      return;
-    }
-
-    currentPick = [];
-    saveState();
-    updateButtonsAndOrder();
-    setMessage(`Not quite. Attempts remaining: ${maxMistakes - mistakes}.`);
-  }
-
-  function undo() {
-    if (gameOver) return;
-    if (currentPick.length === 0) return;
-
-    currentPick.pop();
-    saveState();
-    updateButtonsAndOrder();
-    setMessage("");
-  }
-
-  function clearAll() {
-    if (gameOver) return;
-    currentPick = [];
-    saveState();
-    updateButtonsAndOrder();
-    setMessage("");
-  }
-
-  async function loadPuzzleForActiveDate() {
-    try {
-      setMessage("Loading…");
-      setSubtitle("Put these in order.");
-
-      const res = await fetch("puzzles.json", { cache: "no-store" });
-      if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
-      const data = await res.json();
-
-      const keys = Object.keys(data || {}).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
-      if (keys.length === 0) throw new Error("No date keys found in puzzles.json");
-
-      const earliestKey = keys[0];
-      const earliestDate = new Date(`${earliestKey}T00:00:00`);
-
-      puzzleDateKey = activeDateKey;
-
-      const puzzle = data[puzzleDateKey];
-      gameNumber = Math.max(1, daysBetween(earliestDate, activeDateObj) + 1);
-      setBuildLine();
-      setMeta();
-
-      if (!puzzle || !Array.isArray(puzzle.events) || puzzle.events.length !== 6) {
-        puzzleRule = "Put these in order.";
-        setSubtitle(puzzleRule);
-        setMessage("No puzzle published for this date.");
-        updateControls();
-        return;
+      // If correct, set its correct position number (for hinting later)
+      if (fb === "G") {
+        const correctPos = pos + 1;
+        placedMap[idx] = correctPos;
+        correctPosMap[idx] = correctPos;
       }
+    });
 
-      puzzleRule = puzzle.rule || "Put these in order.";
-      setSubtitle(puzzleRule);
+    const greens = row.filter(x => x === "G").length;
+    if (greens === 6) {
+      win = true;
+      endGame(true);
+      return;
+    }
 
-      events = shuffle([...puzzle.events]);
+    if (attempts.length >= 3) {
+      win = false;
+      endGame(false);
+      return;
+    }
 
-      attempts = [];
-      currentPick = [];
-      mistakes = 0;
-      gameOver = false;
-      attemptedSignatures = [];
-      feedbackMap = {};
-      correctPosMap = {};
-      placedMap = {};
+    // Prepare for next attempt
+    currentPick = [];
+    displayOrder = [0, 1, 2, 3, 4, 5];
 
-      displayOrder = events.map((_, i) => i);
+    saveState();
+    setMessage(`Attempt ${attempts.length}/3`);
+    updateButtonsAndOrder();
+  }
 
-      saveState();
-      updateButtonsAndOrder();
-      setMessage("");
-    } catch (err) {
-      console.error(err);
-      setMessage("Couldn’t load this puzzle. Please refresh and try again.");
+  function endGame(didWin) {
+    gameOver = true;
+
+    // Reorder into correct final order
+    const correctOrderIdxs = events
+      .map((e, idx) => ({ idx, order: e.order }))
+      .sort((a, b) => a.order - b.order)
+      .map(x => x.idx);
+
+    displayOrder = correctOrderIdxs;
+
+    // All tiles green at end, as per spec
+    feedbackMap = {};
+    for (let i = 0; i < 6; i++) feedbackMap[i] = "G";
+
+    // Hide badges and values show at end
+    currentPick = [];
+
+    saveState();
+
+    setMessage(didWin ? "Solved!" : "Out of attempts.");
+    updateButtonsAndOrder();
+  }
+
+  // --- persistence ---
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+
+      attempts = Array.isArray(s.attempts) ? s.attempts : [];
+      currentPick = Array.isArray(s.currentPick) ? s.currentPick : [];
+      gameOver = !!s.gameOver;
+      win = !!s.win;
+
+      attemptedSignatures = Array.isArray(s.attemptedSignatures) ? s.attemptedSignatures : [];
+
+      feedbackMap = s.feedbackMap || {};
+      correctPosMap = s.correctPosMap || {};
+      placedMap = s.placedMap || {};
+
+      displayOrder = Array.isArray(s.displayOrder) ? s.displayOrder : [0, 1, 2, 3, 4, 5];
+
+      // If game was over, ensure display is correct order and green
+      if (gameOver) {
+        const correctOrderIdxs = events
+          .map((e, idx) => ({ idx, order: e.order }))
+          .sort((a, b) => a.order - b.order)
+          .map(x => x.idx);
+        displayOrder = correctOrderIdxs;
+      }
+    } catch {
+      // ignore
     }
   }
 
-  function wireHeaderUI() {
+  function saveState() {
+    const s = {
+      attempts,
+      currentPick,
+      gameOver,
+      win,
+      attemptedSignatures,
+      feedbackMap,
+      correctPosMap,
+      placedMap,
+      displayOrder
+    };
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(s));
+    } catch {
+      // ignore
+    }
+  }
+
+  // --- controls + menu + modal ---
+  function wireUI() {
+    const undoBtn = $("undo");
+    const clearBtn = $("clear");
     const infoBtn = $("infoBtn");
+    const menuBtn = $("menuBtn");
+    const menuDropdown = $("menuDropdown");
+
+    const infoModal = $("infoModal");
     const closeInfoBtn = $("closeInfoBtn");
     const backdrop = $("modalBackdrop");
 
-    if (infoBtn) infoBtn.addEventListener("click", () => {
-      closeMenu();
-      openInfo();
-    });
-    if (closeInfoBtn) closeInfoBtn.addEventListener("click", closeInfo);
-    if (backdrop) backdrop.addEventListener("click", closeInfo);
+    if (undoBtn) undoBtn.addEventListener("click", undoPick);
+    if (clearBtn) clearBtn.addEventListener("click", clearPick);
 
-    const menuBtn = $("menuBtn");
-    const dropdown = $("menuDropdown");
+    function closeMenu() {
+      if (!menuDropdown) return;
+      menuDropdown.hidden = true;
+      if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+    }
 
-    if (menuBtn) menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleMenu();
-    });
+    if (menuBtn && menuDropdown) {
+      menuBtn.addEventListener("click", () => {
+        const open = !menuDropdown.hidden;
+        menuDropdown.hidden = open;
+        menuBtn.setAttribute("aria-expanded", String(!open));
+      });
 
-    document.addEventListener("click", (e) => {
-      if (!dropdown || dropdown.hidden) return;
-      const withinMenu = dropdown.contains(e.target);
-      const withinBtn = menuBtn && menuBtn.contains(e.target);
-      if (!withinMenu && !withinBtn) closeMenu();
-    });
-
-    const devToggle = $("devToggle");
-    if (devToggle) {
-      devToggle.checked = DEV_PERSIST;
-      devToggle.addEventListener("change", () => {
-        const on = devToggle.checked;
-        localStorage.setItem("orderthese:dev", on ? "true" : "false");
-        if (on) clearSavedGame();
-        setMessage(on ? "Developer mode enabled." : "Developer mode disabled.");
+      document.addEventListener("click", (e) => {
+        const t = e.target;
+        if (!t) return;
+        if (menuDropdown.contains(t) || menuBtn.contains(t)) return;
+        closeMenu();
       });
     }
-  }
 
-  function wireGameUI() {
-    const undoBtn = $("undo");
-    const clearBtn = $("clear");
-    const shareBtn = $("share");
-
-    if (undoBtn) undoBtn.addEventListener("click", undo);
-    if (clearBtn) clearBtn.addEventListener("click", clearAll);
-    if (shareBtn) shareBtn.addEventListener("click", shareResults);
-  }
-
-  function init() {
-    setBuildLine();
-    wireHeaderUI();
-    wireGameUI();
-
-    if (localStorage.getItem("orderthese:dev") === "true" || DEV_QUERY) {
-      clearSavedGame();
+    function openInfo() {
+      if (infoModal) infoModal.hidden = false;
+      closeMenu();
+    }
+    function closeInfo() {
+      if (infoModal) infoModal.hidden = true;
     }
 
-    if (loadState()) {
-      setMeta();
-      setSubtitle(puzzleRule);
-      updateButtonsAndOrder();
-      setMessage(gameOver ? "Completed." : "");
-      return;
-    }
-
-    loadPuzzleForActiveDate();
+    if (infoBtn) infoBtn.addEventListener("click", openInfo);
+    if (closeInfoBtn) closeInfoBtn.addEventListener("click", closeInfo);
+    if (backdrop) backdrop.addEventListener("click", closeInfo);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeInfo();
+        closeMenu();
+      }
+    });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  // --- boot ---
+  wireUI();
+  loadPuzzles().catch((e) => {
+    setMessage(String(e?.message || e));
+  });
 })();
