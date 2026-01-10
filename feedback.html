@@ -9,7 +9,38 @@
 <body>
   <main style="max-width:680px;margin:0 auto;padding:18px 14px;">
     <h1>Feedback</h1>
-    <p>Coming soon.</p>
+
+    <p>If something looks off, you’ve got an idea for a theme, or you just want to say hello — send it here.</p>
+
+    <!-- Static-site friendly form handler -->
+    <form action="https://formsubmit.co/jim@orderthese.com" method="POST" style="display:grid;gap:10px;margin-top:14px;">
+      <!-- FormSubmit settings -->
+      <input type="hidden" name="_subject" value="Order These feedback" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="table" />
+
+      <label>
+        Your name (optional)
+        <input name="name" autocomplete="name" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;" />
+      </label>
+
+      <label>
+        Your email (optional)
+        <input name="email" type="email" autocomplete="email" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;" />
+      </label>
+
+      <label>
+        Message
+        <textarea name="message" required rows="6" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;"></textarea>
+      </label>
+
+      <button type="submit">Send feedback</button>
+    </form>
+
+    <p style="font-size:0.95rem;opacity:0.85;margin-top:12px;">
+      By submitting, you’ll be sending an email to <strong>jim@orderthese.com</strong>.
+    </p>
+
     <p><a href="./">Back to today’s puzzle</a></p>
   </main>
 </body>
