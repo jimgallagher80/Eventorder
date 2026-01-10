@@ -23,7 +23,7 @@
 
       <!-- Menu button -->
       <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
-        <img src="menu2.PNG" alt="" class="icon-img"
+        <img src="menu2.PNG" alt="" class="icon-img menu-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
         <span class="icon-fallback" style="display:none;">☰</span>
       </button>
@@ -39,41 +39,35 @@
       />
       <div id="logoText" class="logo-text" style="display:none;">Order These</div>
     </div>
+
+    <!-- spacer to balance layout -->
+    <div class="right-actions"></div>
   </header>
 
   <!-- Dropdown menu -->
-  <nav id="menuDropdown" class="menu" hidden>
+  <div id="menuDropdown" class="menu-dropdown" hidden>
     <a class="menu-item" href="archive.html">Archive</a>
-    <a class="menu-item" href="feedback.html">Feedback</a>
     <a class="menu-item" href="about.html">About</a>
-  </nav>
+    <a class="menu-item" href="feedback.html">Feedback</a>
+  </div>
 
   <!-- Info modal -->
   <div id="infoModal" class="modal" hidden>
-    <div class="modal-card">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="How to play">
       <div class="modal-header">
         <h2>How to play</h2>
-        <button id="closeInfoBtn" class="close-btn" type="button">✕</button>
+        <button id="closeInfoBtn" class="close-btn" type="button" aria-label="Close">✕</button>
       </div>
-
       <div class="modal-body">
-        <p><strong>Goal:</strong> Put the six items in the correct order.</p>
-        <p>You have <strong>3 attempts</strong>. The game submits automatically after 6 selections.</p>
-
-        <p><strong>Colours:</strong></p>
-        <p>🟩 <strong>Green</strong> — correct item in the correct position.</p>
-        <p>🟨 <strong>Yellow</strong> — the item is next to something it should be beside, but it isn’t in the correct final position.</p>
-        <p>🟦 <strong>Blue</strong> — not correct yet.</p>
-
-        <div class="dev-panel">
-          <div class="dev-title">Developer</div>
-
-          <label class="toggle">
-            <input type="checkbox" id="devToggle">
-            <span class="toggle-ui"></span>
-            <span class="toggle-text">Developer mode (allow replay today)</span>
-          </label>
-        </div>
+        <p>Tap the 6 tiles in the correct order. Your guess submits automatically on the 6th tap.</p>
+        <p>You have <strong>3 attempts</strong>.</p>
+        <p>Feedback:</p>
+        <p>
+          🟩 correct position<br>
+          🟨 next to something it should be next to<br>
+          🟦 not in the right place
+        </p>
+        <p>Share shows an emoji grid only — no spoilers.</p>
       </div>
     </div>
 
@@ -95,14 +89,9 @@
     <div class="row" id="controlsRow">
       <button id="undo" class="secondary" disabled>Undo</button>
       <button id="clear" class="secondary" disabled>Clear</button>
+      <button id="share" class="secondary" hidden>Share results</button>
     </div>
 
-    <!-- Share (shown only at end) -->
-    <div class="share-row">
-      <button id="share" class="share" style="display:none;">Share Results</button>
-    </div>
-
-    <!-- Footer -->
     <p id="buildLine" class="buildline"></p>
   </main>
 
