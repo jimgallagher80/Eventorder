@@ -1,0 +1,148 @@
+{
+  "2026-01-10": {
+    "groups": [
+      {
+        "title": "Things that can be charged",
+        "answers": ["Phone", "Battery", "Account", "Crime"]
+      },
+      {
+        "title": "Words that can follow \"paper\"",
+        "answers": ["Cut", "Trail", "Tiger", "Work"]
+      },
+      {
+        "title": "Types of courts",
+        "answers": ["Tennis", "Crown", "Food", "Supreme"]
+      },
+      {
+        "title": "Words with silent letters",
+        "answers": ["Knife", "Honest", "Debt", "Island"]
+      }
+    ]
+  },
+
+  "2026-01-11": {
+    "groups": [
+      {
+        "title": "Things that can be cracked",
+        "answers": ["Egg", "Code", "Joke", "Whip"]
+      },
+      {
+        "title": "Words that can follow \"ice\"",
+        "answers": ["Cream", "Cube", "Age", "Pick"]
+      },
+      {
+        "title": "Common keyboard keys",
+        "answers": ["Shift", "Enter", "Escape", "Tab"]
+      },
+      {
+        "title": "Words associated with banks",
+        "answers": ["River", "Loan", "Vault", "Interest"]
+      }
+    ]
+  },
+
+  "2026-01-12": {
+    "groups": [
+      {
+        "title": "Things that have rings",
+        "answers": ["Phone", "Tree", "Saturn", "Boxing"]
+      },
+      {
+        "title": "Words that can precede \"board\"",
+        "answers": ["Key", "Cup", "Dash", "Card"]
+      },
+      {
+        "title": "Units of measurement",
+        "answers": ["Watt", "Metre", "Litre", "Second"]
+      },
+      {
+        "title": "Words with multiple meanings",
+        "answers": ["Pitch", "Draft", "Fine", "Light"]
+      }
+    ]
+  },
+
+  "2026-01-13": {
+    "groups": [
+      {
+        "title": "Things you can fold",
+        "answers": ["Paper", "Laundry", "Deck", "Arms"]
+      },
+      {
+        "title": "Words that can follow \"hard\"",
+        "answers": ["Drive", "Copy", "Cover", "Core"]
+      },
+      {
+        "title": "Board games",
+        "answers": ["Chess", "Cluedo", "Monopoly", "Scrabble"]
+      },
+      {
+        "title": "Words related to sound",
+        "answers": ["Echo", "Pitch", "Volume", "Tone"]
+      }
+    ]
+  },
+
+  "2026-01-14": {
+    "groups": [
+      {
+        "title": "Things that can be drawn",
+        "answers": ["Conclusion", "Sword", "Picture", "Lottery"]
+      },
+      {
+        "title": "Words that can follow \"light\"",
+        "answers": ["House", "Switch", "Year", "Bulb"]
+      },
+      {
+        "title": "Types of hats",
+        "answers": ["Cap", "Beret", "Fedora", "Helmet"]
+      },
+      {
+        "title": "Words with double letters",
+        "answers": ["Coffee", "Balloon", "Success", "Butter"]
+      }
+    ]
+  },
+
+  "2026-01-15": {
+    "groups": [
+      {
+        "title": "Things that can be sealed",
+        "answers": ["Envelope", "Deal", "Bottle", "Fate"]
+      },
+      {
+        "title": "Words that can precede \"line\"",
+        "answers": ["Finish", "Punch", "Assembly", "Deadline"]
+      },
+      {
+        "title": "Types of rolls",
+        "answers": ["Bread", "Dice", "Payroll", "Drum"]
+      },
+      {
+        "title": "Words associated with writing",
+        "answers": ["Draft", "Edit", "Publish", "Proof"]
+      }
+    ]
+  },
+
+  "2026-01-16": {
+    "groups": [
+      {
+        "title": "Things that can be raised",
+        "answers": ["Eyebrow", "Salary", "Alarm", "Child"]
+      },
+      {
+        "title": "Words that can follow \"open\"",
+        "answers": ["Mind", "Door", "Book", "Sea"]
+      },
+      {
+        "title": "Olympic sports",
+        "answers": ["Fencing", "Rowing", "Judo", "Archery"]
+      },
+      {
+        "title": "Words that are also verbs",
+        "answers": ["Run", "Drive", "Cook", "Paint"]
+      }
+    ]
+  }
+}
