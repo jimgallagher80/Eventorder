@@ -1,56 +1,45 @@
+/* =============================
+   Order These — v3.1
+   ============================= */
+
 :root{
-  --bg: #ffffff;
-  --text: #0f172a;
-  --muted: #475569;
-  --border: #e2e8f0;
-  --panel: #f8fafc;
+  --bg: #000;
+  --fg: #fff;
 
-  --btn: #0f172a;
-  --btnText: #ffffff;
-  --btnSecondary: #f1f5f9;
-  --btnSecondaryText: #0f172a;
+  --tileSize: 104px; /* square tiles */
+  --tileRadius: 16px;
 
-  /* NYT-ish colours (by eye) */
-  --nytBlue: #A9CBEA;
-  --nytYellow: #F9DF6D;
-  --nytGreen: #A0C35A;
+  --tileBorder: 2px;
+  --tileBorderBlue: #2d74ff;
+  --tileBorderYellow: #f0c419;
+  --tileBorderGreen: #36c27a;
 
-  --blueTint: var(--nytBlue);
-  --amber: var(--nytYellow);
-  --green: var(--nytGreen);
+  --tilePad: 10px;
 
-  /* iOS safe-area helpers */
-  --safeTop: env(safe-area-inset-top);
-
-  /* Topbar */
-  --topbarBase: 56px;
-
-  /* Tile sizing */
-  --tile: 132px;        /* bigger tiles; tweak 124–140 if you want */
-  --tileGap: 12px;
-  --tileRadius: 14px;
-
-  /* Text sizing (chosen to comfortably fit up to ~16 chars on one line with padding) */
-  --titleSize: 13px;
+  --titleSize: 14px;
   --valueSize: 12px;
 
-  /* Always keep internal breathing room */
-  --tilePad: 12px;
-  --badgeSpace: 40px;   /* reserved space at bottom for badge */
+  --shadow: 0 10px 24px rgba(0,0,0,0.35);
 }
 
-*{ box-sizing: border-box; }
+*{ box-sizing:border-box; }
 
 html, body{
+  height: 100%;
   margin: 0;
-  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 body{
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-text-size-adjust: 100%;
+  padding-top: 66px; /* space for fixed header */
+}
+
+main{
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 16px 14px 26px;
 }
 
 /* iOS tap ergonomics */
@@ -66,41 +55,44 @@ button,
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  padding-top: var(--safeTop);
-  height: calc(var(--topbarBase) + var(--safeTop));
+
+  height: 58px;
+  padding: 0 10px;
+
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+
+  background: #000;
 }
 
 .left-actions{
   display: flex;
-  gap: 6px;
+  gap: 4px;
   padding-left: 12px;
 }
 
 .icon-btn{
   width: 40px;
   height: 40px;
-  border: none;
+  border: 0;
   background: transparent;
-  border-radius: 0;
-  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.icon-btn:active{
-  opacity: 0.6;
+  color: #fff;
+  cursor: pointer;
 }
 
 .icon-img{
   width: 25px;
   height: 25px;
   display: block;
+  object-fit: contain;
+}
+
+.menu-img{
+  transform: scale(1.12);
 }
 
 .icon-fallback{
@@ -112,151 +104,140 @@ button,
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 64px; /* balances left buttons visually */
 }
 
 .logo{
-  height: 42px;
+  height: 30px;
   width: auto;
-  max-width: 100%;
   display: block;
 }
 
 .logo-text{
-  font-weight: 800;
-  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
 }
 
-/* Main layout */
-main{
-  max-width: 680px;
-  margin: 0 auto;
-  padding: calc(var(--topbarBase) + 12px + var(--safeTop)) 14px 18px 14px;
+/* Menu dropdown */
+.menu-dropdown{
+  position: fixed;
+  top: 58px;
+  left: 10px;
+
+  background: #121212;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 1001;
+
+  box-shadow: var(--shadow);
+}
+
+.menu-item{
+  display: block;
+  padding: 10px 12px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.menu-item:active{
+  background: rgba(255,255,255,0.12);
 }
 
 .meta{
-  margin: 0.25rem 0 0.4rem 0;
-  color: var(--muted);
-  font-size: 14px;
+  margin: 10px 0 8px;
+  font-size: 16px;
   font-weight: 800;
+  text-align: center;
 }
 
 .subtitle{
-  margin: 0 0 0.75rem 0;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 800;
+  margin: 0 0 10px;
+  font-size: 15px;
+  text-align: center;
 }
 
 .message{
-  margin: 0 0 0.75rem 0;
-  color: var(--text);
+  margin: 8px 0 12px;
+  min-height: 20px;
+  text-align: center;
+  color: rgba(255,255,255,0.85);
   font-size: 14px;
-  min-height: 18px;
 }
 
-.row{
-  display: flex;
-  gap: 10px;
-  margin: 12px 0;
-}
-
-/* Buttons */
-button{
-  width: 100%;
-  padding: 12px;
-  font-size: 15px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
-
-button:disabled{
-  opacity: 0.55;
-  cursor: default;
-}
-
-button.secondary{
-  background: var(--btnSecondary);
-  color: var(--btnSecondaryText);
-  border-color: var(--border);
-}
-
-/* Share row centred at bottom */
-.share-row{
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
-}
-
-#share.share{
-  width: auto;
-  padding: 12px 18px;
-  background: var(--blueTint);
-  color: #000;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-}
-
-/* ===== GRID LAYOUT =====
-   Fixed-size squares so all tiles are identical.
-   Centred grid gives you consistent side whitespace.
-*/
+/* Grid container */
 .event-buttons{
-  margin: 12px auto 0 auto;
-
   display: grid;
-  grid-template-columns: repeat(3, var(--tile));
-  gap: var(--tileGap);
-
+  gap: 10px;
   justify-content: center;
-  align-content: start;
+  align-content: center;
+
+  /* default small screen: 2 cols x 3 rows */
+  grid-template-columns: repeat(2, var(--tileSize));
 }
 
-/* Switch to 2 columns on smaller screens */
-@media (max-width: 520px){
+/* larger screens: 3 cols x 2 rows */
+@media (min-width: 420px){
   .event-buttons{
-    grid-template-columns: repeat(2, var(--tile));
+    grid-template-columns: repeat(3, var(--tileSize));
   }
 }
 
-/* Event tiles (square) */
 .event-btn{
-  position: relative;
+  width: var(--tileSize);
+  height: var(--tileSize);
 
-  transition: transform 220ms ease, background-color 160ms ease;
-  will-change: transform;
-
-  background: var(--blueTint);
-  border: none;
   border-radius: var(--tileRadius);
-
-  width: var(--tile);
-  aspect-ratio: 1 / 1;
-
-  /* padding + reserved space for bottom-right badge */
-  padding: var(--tilePad);
-  padding-bottom: calc(var(--badgeSpace) + 2px);
+  border: var(--tileBorder) solid rgba(255,255,255,0.18);
+  background: #fff;
 
   color: #000;
+  padding: var(--tilePad);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  text-align: center;
+  position: relative;
+  cursor: pointer;
 
-  /* never let contents touch edges */
-  overflow: hidden;
+  user-select: none;
 }
 
-/* Darken selected tile (works over any colour) */
-.event-btn.selected::after{
-  content: "";
+.event-btn:active{
+  filter: brightness(0.92);
+}
+
+.event-btn.selected{
+  filter: brightness(0.88);
+}
+
+/* Feedback borders */
+.event-btn.fb-blue{ border-color: var(--tileBorderBlue); }
+.event-btn.fb-yellow{ border-color: var(--tileBorderYellow); }
+.event-btn.fb-green{ border-color: var(--tileBorderGreen); }
+
+.choice-badge{
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  right: 8px;
+  bottom: 8px;
+
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+
+  border-radius: 999px;
   background: rgba(0,0,0,0.14);
+  color: #000;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
   pointer-events: none;
 }
 
@@ -272,7 +253,6 @@ button.secondary{
   text-align: center;
 }
 
-/* Title text */
 .event-title{
   font-weight: 800;
   line-height: 1.15;
@@ -289,6 +269,20 @@ button.secondary{
 
   /* better line breaks where supported */
   text-wrap: balance;
+}
+
+.event-title.is-image{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-img{
+  width: min(72%, 140px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 /* Value reveal (final reveal only) */
@@ -308,123 +302,62 @@ button.secondary{
   text-wrap: balance;
 }
 
-/* tiles should not visually “grey out” */
-.event-btn:disabled{
-  opacity: 1;
+/* Controls row */
+.row{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button{
+  font: inherit;
+}
+
+button.secondary{
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: #101010;
+  color: #fff;
+  cursor: pointer;
+}
+
+button.secondary:disabled{
+  opacity: 0.4;
   cursor: default;
 }
 
-/* Choice badge (bottom-right circle) */
-.choice-badge{
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  font-weight: 800;
-  font-size: 13px;
-  color: #000;
-
-  background: rgba(255,255,255,0.72);
-  border: 1px solid rgba(15, 23, 42, 0.12);
-
-  line-height: 1;
-  padding: 0;
-  text-align: center;
-
-  z-index: 2; /* above selected overlay */
-}
-
-/* Correct-position badge styling (light grey number) */
-.choice-badge.badge-correct{
-  color: #9ca3af;
-  border-color: rgba(15, 23, 42, 0.12);
-  background: rgba(255,255,255,0.82);
-}
-
-/* Feedback fills */
-.event-btn.fb-blue{ background: var(--blueTint); }
-.event-btn.fb-yellow{ background: var(--amber); }
-.event-btn.fb-green{ background: var(--green); }
-
-/* Final reveal */
-.event-btn.final-reveal{
-  background: var(--green);
-}
-
-/* Hide badge on final reveal */
-.event-btn.final-reveal .choice-badge{
-  display: none;
-}
-
-/* Dropdown menu */
-.menu{
-  position: fixed;
-  top: calc(var(--topbarBase) + var(--safeTop));
-  left: 12px;
-  z-index: 2000;
-  width: 180px;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
-  padding: 6px;
-}
-
-.menu-item{
-  display: block;
-  padding: 10px 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--text);
-  font-size: 14px;
-}
-
-.menu-item:hover{
-  background: var(--panel);
-}
-
 /* Modal */
-.modal[hidden]{ display: none; }
+.modal[hidden]{
+  display: none !important;
+}
 
 .modal{
   position: fixed;
   inset: 0;
-  z-index: 3000;
-}
-
-.modal-backdrop{
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.35);
+  z-index: 1200;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 76px 14px 14px;
 }
 
 .modal-card{
-  position: relative;
-  z-index: 3001;
-  width: min(560px, calc(100% - 28px));
-  margin: calc(var(--topbarBase) + 18px + var(--safeTop)) auto 0 auto;
-  background: #ffffff;
-  border: 1px solid var(--border);
+  width: min(680px, 100%);
   border-radius: 16px;
+  background: #121212;
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: var(--shadow);
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
 }
 
 .modal-header{
-  display: flex;
-  align-items: center;
+  display:flex;
+  align-items:center;
   justify-content: space-between;
-  padding: 12px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel);
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
 }
 
 .modal-header h2{
@@ -433,121 +366,56 @@ button.secondary{
 }
 
 .close-btn{
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: #fff;
   font-size: 18px;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.close-btn:active{
+  background: rgba(255,255,255,0.10);
 }
 
 .modal-body{
-  padding: 12px 12px 14px 12px;
-  color: var(--text);
-  font-size: 14px;
+  padding: 14px;
+  color: rgba(255,255,255,0.9);
 }
 
-/* Dev toggle */
-.dev-panel{
-  margin-top: 12px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: -1;
 }
 
-.dev-title{
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.toggle{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  user-select: none;
-}
-
-.toggle input{
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.toggle-ui{
-  width: 44px;
-  height: 26px;
-  border-radius: 999px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.toggle-ui::after{
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  transition: transform 150ms ease;
-}
-
-.toggle input:checked + .toggle-ui{
-  background: #0f172a;
-  border-color: #0f172a;
-}
-
-.toggle input:checked + .toggle-ui::after{
-  transform: translateX(18px);
-  border-color: #0f172a;
-}
-
-.toggle-text{
-  font-size: 14px;
-  color: var(--text);
-}
-
-/* Footer build line */
+/* Build line */
 .buildline{
-  margin: 22px 0 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  margin-top: 18px;
   text-align: center;
   font-size: 12px;
-  color: var(--muted);
+  opacity: 0.65;
 }
 
-/* Archive */
-.archive-note{
-  margin: -0.4rem 0 0.9rem 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.35;
-}
-
+/* Archive list */
 .archive-list{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  gap: 8px;
   margin-top: 12px;
 }
 
 .archive-link{
   display: block;
+  padding: 12px 12px;
+  border-radius: 14px;
+  background: #101010;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #fff;
   text-decoration: none;
-  font-weight: 800;
-  font-size: 14px;
-  color: #000;
-  padding: 10px 12px;
-  border-radius: 12px;
 }
 
-.archive-link:hover{
-  background: var(--panel);
+.archive-link:active{
+  background: rgba(255,255,255,0.08);
 }
