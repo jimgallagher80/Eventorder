@@ -1,7 +1,25 @@
 (() => {
-  const VERSION = "2.2";
-  const LAST_UPDATED = "05 Jan 2026 17:05";
+  const VERSION = "3.1";
+  const LAST_UPDATED = "10 Jan 2026 14:00 GMT";
   const $ = (id) => document.getElementById(id);
+
+  // Play counter (static-site friendly) using CountAPI (public)
+  const COUNTAPI_NAMESPACE = "orderthese";
+  const COUNTAPI_BASE = "https://api.countapi.xyz";
+
+  function playCountKey(dateStr) {
+    return `played_${dateStr}`;
+  }
+
+  async function fetchPlayCount(dateStr) {
+    try {
+      const res = await fetch(`${COUNTAPI_BASE}/get/${COUNTAPI_NAMESPACE}/${playCountKey(dateStr)}`);
+      const data = await res.json();
+      return typeof data?.value === "number" ? data.value : 0;
+    } catch {
+      return null;
+    }
+  }
 
   function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
   function daysBetween(a, b) {
@@ -10,57 +28,39 @@
   }
   function ordinal(n) {
     const mod100 = n % 100;
-    if (mod100 >= 11 && mod100 <= 13) return "th";
-    switch (n % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
-    }
+    if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+    const mod10 = n % 10;
+    if (mod10 === 1) return `${n}st`;
+    if (mod10 === 2) return `${n}nd`;
+    if (mod10 === 3) return `${n}rd`;
+    return `${n}th`;
   }
   function formatDateShortWithOrdinal(d) {
-    const day = d.getDate();
-    const month = d.toLocaleString("en-GB", { month: "short" });
-    const year = d.getFullYear();
-    return `${day}${ordinal(day)} ${month} ${year}`;
+    const day = ordinal(d.getDate());
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const mon = months[d.getMonth()];
+    const yr = d.getFullYear();
+    return `${day} ${mon} ${yr}`;
   }
 
-  function setBuildLine() {
-    const el = $("buildLine");
-    if (!el) return;
-    el.textContent = `Beta v${VERSION} · last updated ${LAST_UPDATED}`;
-  }
+  async function loadPuzzles() {
+    const msg = $("archiveMessage");
+    try {
+      const res = await fetch("puzzles.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(`Failed to load puzzles.json (${res.status})`);
+      const puzzles = await res.json();
+      const keys = Object.keys(puzzles).sort();
+      if (!keys.length) throw new Error("No puzzles found.");
 
-  function closeMenu() {
-    const dd = $("menuDropdown");
-    const btn = $("menuBtn");
-    if (dd) dd.hidden = true;
-    if (btn) btn.setAttribute("aria-expanded", "false");
-  }
-  function toggleMenu() {
-    const dd = $("menuDropdown");
-    const btn = $("menuBtn");
-    if (!dd) return;
-    const willOpen = dd.hidden === true;
-    dd.hidden = !willOpen;
-    if (btn) btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-  }
+      const earliest = new Date(`${keys[0]}T00:00:00`);
+      renderList(keys, earliest);
 
-  function wireMenu() {
-    const menuBtn = $("menuBtn");
-    const dropdown = $("menuDropdown");
-
-    if (menuBtn) menuBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleMenu();
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!dropdown || dropdown.hidden) return;
-      const withinMenu = dropdown.contains(e.target);
-      const withinBtn = menuBtn && menuBtn.contains(e.target);
-      if (!withinMenu && !withinBtn) closeMenu();
-    });
+      const buildLine = $("buildLine");
+      if (buildLine) buildLine.textContent = `v${VERSION} • last updated ${LAST_UPDATED}`;
+      if (msg) msg.textContent = "Note: in live mode, only past games will be available here.";
+    } catch (e) {
+      if (msg) msg.textContent = String(e?.message || e);
+    }
   }
 
   function renderList(keys, earliestDate) {
@@ -76,50 +76,21 @@
       const a = document.createElement("a");
       a.className = "archive-link";
       a.href = `index.html?date=${encodeURIComponent(key)}`;
-      a.textContent = `#${gameNo}, ${formatDateShortWithOrdinal(dateObj)}`;
+
+      const base = `#${gameNo}, ${formatDateShortWithOrdinal(dateObj)}`;
+      a.textContent = base;
+
+      fetchPlayCount(key).then((n) => {
+        if (typeof n === "number") {
+          a.textContent = `${base}. Played by ${n} people.`;
+        }
+      });
+
       a.setAttribute("aria-label", `Open game ${gameNo} for ${formatDateShortWithOrdinal(dateObj)}`);
 
       wrap.appendChild(a);
     });
   }
 
-  async function init() {
-    setBuildLine();
-    wireMenu();
-
-    const msg = $("archiveMessage");
-    try {
-      if (msg) msg.textContent = "Loading…";
-
-      const res = await fetch("puzzles.json", { cache: "no-store" });
-      if (!res.ok) throw new Error(`puzzles.json fetch failed (${res.status})`);
-      const data = await res.json();
-
-      const keys = Object.keys(data || {})
-        .filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k))
-        .sort();
-
-      if (keys.length === 0) {
-        if (msg) msg.textContent = "No puzzle dates found.";
-        return;
-      }
-
-      const earliestKey = keys[0];
-      const earliestDate = new Date(`${earliestKey}T00:00:00`);
-
-      const newestFirst = keys.slice().reverse();
-
-      if (msg) msg.textContent = "";
-      renderList(newestFirst, earliestDate);
-    } catch (e) {
-      console.error(e);
-      if (msg) msg.textContent = "Couldn’t load the archive. Please refresh and try again.";
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  loadPuzzles();
 })();
