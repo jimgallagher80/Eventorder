@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Groups of Four</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Groups of Four</h1>
+    <div class="meta">
+      <button id="btnHow" class="ghost" type="button" aria-haspopup="dialog">Info</button>
+      <button id="btnNew" class="ghost" type="button">New puzzle</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <div class="status">
+        <div>
+          <div class="label">Mistakes left</div>
+          <div id="mistakes" class="value" aria-live="polite">4</div>
+        </div>
+        <div>
+          <div class="label">Selected</div>
+          <div id="selectedCount" class="value" aria-live="polite">0 / 4</div>
+        </div>
+      </div>
+
+      <div id="grid" class="grid" role="list" aria-label="Tiles"></div>
+
+      <div class="controls">
+        <button id="btnShuffle" type="button">Shuffle</button>
+        <button id="btnDeselect" type="button">Deselect all</button>
+        <button id="btnSubmit" type="button" class="primary" disabled>Submit</button>
+      </div>
+
+      <div id="message" class="message" aria-live="polite"></div>
+    </section>
+
+    <section class="solved" aria-label="Solved groups">
+      <h2>Solved</h2>
+      <div id="solvedList" class="solvedList"></div>
+    </section>
+  </main>
+
+  <!-- Simple modal -->
+  <dialog id="howDialog" class="dialog">
+    <h3>How to play</h3>
+    <p>Find 4 groups of 4 related tiles. Select up to four tiles, then press Submit.</p>
+    <ul>
+      <li>You have limited mistakes.</li>
+      <li>Shuffle mixes the remaining tiles.</li>
+      <li>Keyboard: Tab to focus tiles, Space/Enter to select.</li>
+    </ul>
+    <div class="dialogActions">
+      <button id="btnCloseHow" class="primary" type="button">Got it</button>
+    </div>
+  </dialog>
+
+  <script src="game.js"></script>
+</body>
+</html>
