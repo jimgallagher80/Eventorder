@@ -98,8 +98,8 @@ button,
 }
 
 .icon-img{
-  width: 25px;
-  height: 25px;
+  width: 22px;
+  height: 22px;
   display: block;
 }
 
@@ -107,6 +107,12 @@ button,
   width: 23px;
   height: 23px;
 }
+
+.menu-img{
+  transform: scale(0.88);
+  transform-origin: center;
+}
+
 
 
 .icon-fallback{
