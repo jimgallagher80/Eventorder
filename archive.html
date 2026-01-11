@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <title>Order These — Archive</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=222" />
+  <link rel="stylesheet" href="style.css?v=236" />
 </head>
 
 <body>
+  <!-- Sticky top bar -->
   <header class="topbar">
     <div class="left-actions">
+      <!-- Menu button (left) -->
       <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
         <img src="menu.PNG" alt="" class="icon-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
@@ -17,19 +19,28 @@
       </button>
     </div>
 
+    <!-- Centre logo -->
     <div class="brand">
-      <img src="logo.PNG" alt="Order These" class="logo"
-           onerror="this.style.display='none'; document.getElementById('logoText').style.display='block';" />
+      <img
+        src="logo2.PNG"
+        alt="Order These"
+        class="logo"
+        onerror="this.style.display='none'; document.getElementById('logoText').style.display='block';"
+      />
       <div id="logoText" class="logo-text" style="display:none;">Order These</div>
     </div>
+
+    <!-- spacer to balance layout -->
+    <div class="right-actions"></div>
   </header>
 
-  <nav id="menuDropdown" class="menu" hidden>
+  <!-- Dropdown menu -->
+  <div id="menuDropdown" class="menu-dropdown" hidden>
     <a class="menu-item" href="index.html">Today</a>
     <a class="menu-item" href="archive.html">Archive</a>
     <a class="menu-item" href="feedback.html">Feedback</a>
     <a class="menu-item" href="about.html">About</a>
-  </nav>
+  </div>
 
   <main>
     <p class="meta">Archive</p>
@@ -45,6 +56,46 @@
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <script src="archive.js?v=222" defer></script>
+  <script src="archive.js?v=236" defer></script>
+
+  <!-- Menu dropdown wiring (kept inline so Archive always works) -->
+  <script>
+  (() => {
+    const $ = (id) => document.getElementById(id);
+
+    function closeMenu() {
+      const dd = $("menuDropdown");
+      const btn = $("menuBtn");
+      if (dd) dd.hidden = true;
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    }
+
+    function toggleMenu() {
+      const dd = $("menuDropdown");
+      const btn = $("menuBtn");
+      if (!dd) return;
+      const willOpen = dd.hidden === true;
+      dd.hidden = !willOpen;
+      if (btn) btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    }
+
+    const menuBtn = $("menuBtn");
+    const dropdown = $("menuDropdown");
+
+    if (menuBtn) {
+      menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleMenu();
+      });
+    }
+
+    document.addEventListener("click", (e) => {
+      if (!dropdown || dropdown.hidden) return;
+      const withinMenu = dropdown.contains(e.target);
+      const withinBtn = menuBtn && menuBtn.contains(e.target);
+      if (!withinMenu && !withinBtn) closeMenu();
+    });
+  })();
+  </script>
 </body>
 </html>
