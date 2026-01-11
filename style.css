@@ -166,6 +166,19 @@ main{
   margin: 12px 0;
 }
 
+/* Controls row should match the 2-tile grid width on mobile */
+#controlsRow{
+  width: calc((var(--tile) * 2) + var(--tileGap));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Make Undo/Clear/Share the same width as a tile */
+#undo, #clear, #share{
+  width: var(--tile);
+}
+
+
 /* Buttons */
 button{
   width: 100%;
