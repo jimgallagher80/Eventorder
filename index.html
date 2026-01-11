@@ -7,29 +7,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="style.css?v=226" />
+  <link rel="stylesheet" href="style.css?v=228" />
 </head>
 
 <body>
   <!-- Sticky top bar -->
   <header class="topbar">
+    <!-- Left: Menu -->
     <div class="left-actions">
-      <!-- to Info button -->
-      <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
-        <img src="info.PNG" alt="" class="icon-img"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-        <span class="icon-fallback" style="display:none;">🤔</span>
-      </button>
-
-      <!-- Menu button -->
       <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
-        <img src="menu.PNG" alt="" class="icon-img menu-img"
+        <img src="menu.PNG" alt="" class="icon-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
         <span class="icon-fallback" style="display:none;">☰</span>
       </button>
     </div>
 
-    <!-- Centre logo -->
+    <!-- Centre: Logo -->
     <div class="brand">
       <img
         src="logo.PNG"
@@ -40,8 +33,14 @@
       <div id="logoText" class="logo-text" style="display:none;">Order These</div>
     </div>
 
-    <!-- spacer to balance layout -->
-    <div class="right-actions"></div>
+    <!-- Right: Info -->
+    <div class="right-actions">
+      <button id="infoBtn" class="icon-btn" type="button" aria-label="Information">
+        <img src="info.PNG" alt="" class="icon-img"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+        <span class="icon-fallback" style="display:none;">🤔</span>
+      </button>
+    </div>
   </header>
 
   <!-- Dropdown menu -->
@@ -78,23 +77,22 @@
   <main>
     <p id="meta" class="meta"></p>
 
-    <!-- dynamic rule sentence -->
     <p id="subtitle" class="subtitle"><strong>Put these in order.</strong></p>
 
     <p id="message" class="message"></p>
 
     <div id="event-buttons" class="event-buttons"></div>
 
-    <!-- Controls (shown only during play) -->
+    <!-- Controls -->
     <div class="row" id="controlsRow">
       <button id="undo" class="secondary" disabled>Undo</button>
       <button id="clear" class="secondary" disabled>Clear</button>
-      <button id="share" class="secondary" hidden>Share results</button>
+      <button id="share" class="secondary share" hidden>Share results</button>
     </div>
 
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <script src="game.js?v=226" defer></script>
+  <script src="game.js?v=228" defer></script>
 </body>
 </html>
