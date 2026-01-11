@@ -2,15 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>About — Order These</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Order These — About</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="stylesheet" href="style.css?v=239" />
 </head>
+
 <body>
-  <main style="max-width:680px;margin:0 auto;padding:18px 14px;">
-    <h1>About</h1>
-    <p>Coming soon.</p>
-    <p><a href="./">Back to today’s puzzle</a></p>
+  <!-- Sticky top bar -->
+  <header class="topbar">
+    <div class="left-actions">
+      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu">
+        <img src="menu.PNG" alt="" class="icon-img" />
+      </button>
+    </div>
+
+    <div class="brand">
+      <img src="logo2.PNG" alt="Order These" class="logo" />
+    </div>
+
+    <div class="right-actions"></div>
+  </header>
+
+  <!-- Dropdown menu -->
+  <div id="menuDropdown" class="menu-dropdown" hidden>
+    <a class="menu-item" href="index.html">Today</a>
+    <a class="menu-item" href="archive.html">Archive</a>
+    <a class="menu-item" href="feedback.html">Feedback</a>
+    <a class="menu-item" href="about.html">About</a>
+  </div>
+
+  <main>
+    <p class="meta">About</p>
+
+    <p class="subtitle">
+      <strong>What is Order These?</strong>
+    </p>
+
+    <p class="message">
+      Order These is a daily puzzle where you’re given six items and asked to put
+      them into the correct order. That order might be by date, size, distance,
+      weight, or something else entirely.
+    </p>
+
+    <p class="message">
+      Tap the tiles in the order you think is correct. Your guess submits
+      automatically on the sixth tap. You have three attempts.
+    </p>
+
+    <p class="message">
+      After each attempt you’ll see feedback:
+      <br>🟩 correct position  
+      <br>🟨 next to something it should be next to  
+      <br>🟦 not in the right place
+    </p>
+
+    <p class="subtitle">
+      <strong>Why does this exist?</strong>
+    </p>
+
+    <p class="message">
+      This started as an idea I had on New Year’s Day 2026. I wanted to build a
+      small, satisfying daily puzzle that rewarded logic and general knowledge,
+      without pressure, ads, or noise.
+    </p>
+
+    <p class="message">
+      It’s still very much a work in progress, and I’m continuing to refine it
+      based on how it feels to play and the feedback people send in.
+    </p>
+
+    <p class="subtitle">
+      <strong>Who made it?</strong>
+    </p>
+
+    <p class="message">
+      I’m Jim Gallagher, based in Scotland. Order These is something I’m building
+      and improving in my spare time.
+    </p>
+
+    <p class="subtitle">
+      <strong>Feedback welcome</strong>
+    </p>
+
+    <p class="message">
+      If you spot bugs, have ideas for improvements, or want to suggest future
+      topics, please use the feedback form. Even small comments are genuinely
+      helpful at this stage.
+    </p>
+
+    <p class="buildline">
+      Beta v3.4 · last updated 11 Jan 2026 19:01 GMT
+    </p>
   </main>
+
+  <!-- Menu wiring -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("menuBtn");
+      const dd = document.getElementById("menuDropdown");
+
+      btn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dd.hidden = !dd.hidden;
+      });
+
+      document.addEventListener("click", () => {
+        dd.hidden = true;
+      });
+    });
+  </script>
 </body>
 </html>
