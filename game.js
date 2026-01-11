@@ -305,10 +305,10 @@
   }
 
   function buildShareText() {
-    const map = { G: "🟩", Y: "🟨", B: "🟦" };
-    const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
-    return `Order These\nGame #${gameNumber}\n${gridLines}`;
-  }
+  const map = { G: "🟩", Y: "🟨", B: "🟦" };
+  const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
+  return `orderthese.com\nGame #${gameNumber}\n${gridLines}`;
+}
 
   async function shareResults() {
     if (!gameOver) return;
@@ -484,23 +484,18 @@
       }
 
       if (badge) {
-        if (gameOver) {
-          badge.textContent = "";
-          badge.classList.remove("badge-correct");
-        } else if (pickedPos >= 0) {
-          badge.textContent = String(pickedPos + 1);
-          badge.classList.remove("badge-correct");
-        } else {
-          const placed = placedMap[idx];
-          if (typeof placed === "number" && placed >= 1 && placed <= 6) {
-            badge.textContent = String(placed);
-            badge.classList.add("badge-correct");
-          } else {
-            badge.textContent = "";
-            badge.classList.remove("badge-correct");
-          }
-        }
-      }
+  if (gameOver) {
+    badge.textContent = "";
+    badge.classList.remove("badge-correct");
+  } else if (pickedPos >= 0) {
+    badge.textContent = String(pickedPos + 1);
+    badge.classList.remove("badge-correct");
+  } else {
+    badge.textContent = "";
+    badge.classList.remove("badge-correct");
+  }
+}
+
 
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
     });
@@ -534,12 +529,7 @@
     const newFeedback = {};
     const newCorrect = {};
 
-    currentPick.forEach((eventIdx, pos) => {
-      const c = row[pos];
-      newFeedback[eventIdx] = c;
-      if (c === "G") newCorrect[eventIdx] = pos + 1;
-    });
-
+    
     feedbackMap = newFeedback;
     correctPosMap = newCorrect;
 
