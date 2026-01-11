@@ -295,14 +295,25 @@
   }
 
   function evaluateRow(pick) {
-    return pick.map((e, i) => {
-      if (e.order === i + 1) return "G";
-      const left = pick[i - 1];
-      const right = pick[i + 1];
-      if ((left && left.order < e.order) || (right && right.order > e.order)) return "Y";
-      return "B";
-    });
-  }
+  return pick.map((e, i) => {
+    // Green: exact position
+    if (e.order === i + 1) return "G";
+
+    // Yellow: next to something it should be next to (true adjacency)
+    const left = pick[i - 1];
+    const right = pick[i + 1];
+
+    const shouldBeNextTo = new Set();
+    if (e.order > 1) shouldBeNextTo.add(e.order - 1);
+    if (e.order < 6) shouldBeNextTo.add(e.order + 1);
+
+    if ((left && shouldBeNextTo.has(left.order)) || (right && shouldBeNextTo.has(right.order))) {
+      return "Y";
+    }
+
+    return "B";
+  });
+}
 
   function buildShareText() {
   const map = { G: "🟩", Y: "🟨", B: "🟦" };
