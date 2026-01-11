@@ -362,9 +362,10 @@ button.secondary{
 }
 
 /* Feedback fills */
-.event-btn.fb-blue{ background: var(--blueTint); }
-.event-btn.fb-yellow{ background: var(--amber); }
-.event-btn.fb-green{ background: var(--green); }
+.event-btn.fb-blue{ background: var(--blueTint) !important; }
+.event-btn.fb-yellow{ background: var(--amber) !important; }
+.event-btn.fb-green{ background: var(--green) !important; }
+
 
 /* Final reveal */
 .event-btn.final-reveal{
