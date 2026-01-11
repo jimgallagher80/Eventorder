@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v3.2 — share button shown on game over; undo/clear hidden on game over
-  const VERSION = "3.3";
+  // v3.4 — force per-attempt tile colours via inline style (Safari-proof)
+  const VERSION = "3.4";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "11 Jan 2026 18:50 GMT";
+  const LAST_UPDATED = "11 Jan 2026 19:01 GMT";
 
   const $ = (id) => document.getElementById(id);
 
@@ -137,8 +137,7 @@
   let attemptedSignatures = []; // "idx-idx-idx-idx-idx-idx"
 
   let feedbackMap = {};        // { [eventIdx]: "G"|"Y"|"B" }
-  let correctPosMap = {};      // { [eventIdx]: number } (compat)
-  let placedMap = {};          // { [eventIdx]: number } 1..6 (grey correct-position badges)
+  let correctPosMap = {};      // kept for backwards compat
 
   // displayOrder drives in-play ordering
   let displayOrder = [];       // visual order [eventIdx..]
@@ -219,7 +218,6 @@
         attemptedSignatures,
         feedbackMap,
         correctPosMap,
-        placedMap,
         displayOrder
       };
       localStorage.setItem(storageKey, JSON.stringify(state));
@@ -248,7 +246,6 @@
       attemptedSignatures = Array.isArray(state.attemptedSignatures) ? state.attemptedSignatures : [];
       feedbackMap = state.feedbackMap && typeof state.feedbackMap === "object" ? state.feedbackMap : {};
       correctPosMap = state.correctPosMap && typeof state.correctPosMap === "object" ? state.correctPosMap : {};
-      placedMap = state.placedMap && typeof state.placedMap === "object" ? state.placedMap : {};
 
       displayOrder = Array.isArray(state.displayOrder) && state.displayOrder.length === 6
         ? state.displayOrder
@@ -276,7 +273,6 @@
     // Keep the row visible so Share can appear after game over
     if (controlsRow) controlsRow.style.display = "flex";
 
-    // Undo/Clear: only relevant during play
     if (undoBtn) {
       undoBtn.hidden = gameOver;
       undoBtn.disabled = !canEdit || currentPick.length === 0;
@@ -287,39 +283,37 @@
       clearBtn.disabled = !canEdit || currentPick.length === 0;
     }
 
-    // Share: only relevant after completion
     if (shareBtn) {
       shareBtn.hidden = !gameOver;
       shareBtn.disabled = !gameOver;
     }
   }
 
+  // True adjacency rule (your definition)
   function evaluateRow(pick) {
-  return pick.map((e, i) => {
-    // Green: exact position
-    if (e.order === i + 1) return "G";
+    return pick.map((e, i) => {
+      if (e.order === i + 1) return "G";
 
-    // Yellow: next to something it should be next to (true adjacency)
-    const left = pick[i - 1];
-    const right = pick[i + 1];
+      const left = pick[i - 1];
+      const right = pick[i + 1];
 
-    const shouldBeNextTo = new Set();
-    if (e.order > 1) shouldBeNextTo.add(e.order - 1);
-    if (e.order < 6) shouldBeNextTo.add(e.order + 1);
+      const shouldBeNextTo = new Set();
+      if (e.order > 1) shouldBeNextTo.add(e.order - 1);
+      if (e.order < 6) shouldBeNextTo.add(e.order + 1);
 
-    if ((left && shouldBeNextTo.has(left.order)) || (right && shouldBeNextTo.has(right.order))) {
-      return "Y";
-    }
+      if ((left && shouldBeNextTo.has(left.order)) || (right && shouldBeNextTo.has(right.order))) {
+        return "Y";
+      }
 
-    return "B";
-  });
-}
+      return "B";
+    });
+  }
 
   function buildShareText() {
-  const map = { G: "🟩", Y: "🟨", B: "🟦" };
-  const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
-  return `orderthese.com\nGame #${gameNumber}\n${gridLines}`;
-}
+    const map = { G: "🟩", Y: "🟨", B: "🟦" };
+    const gridLines = attempts.map(r => r.map(c => map[c] || "⬜").join("")).join("\n");
+    return `orderthese.com\nGame #${gameNumber}\n${gridLines}`;
+  }
 
   async function shareResults() {
     if (!gameOver) return;
@@ -480,33 +474,35 @@
         }
       }
 
-      btn.classList.remove("fb-blue", "fb-yellow", "fb-green", "final-reveal", "selected");
+      // Selection overlay class still used
+      btn.classList.remove("selected");
 
       const pickedPos = currentPick.indexOf(idx);
       if (pickedPos >= 0) btn.classList.add("selected");
 
+      // ✅ Safari-proof colours: set tile fill directly
       if (gameOver) {
-        btn.classList.add("final-reveal");
+        btn.style.background = "var(--green)";
       } else {
-        const fb = feedbackMap[idx];
-        if (fb === "G") btn.classList.add("fb-green");
-        else if (fb === "Y") btn.classList.add("fb-yellow");
-        else btn.classList.add("fb-blue");
+        const fb = feedbackMap[idx]; // G / Y / B
+        if (fb === "G") btn.style.background = "var(--green)";
+        else if (fb === "Y") btn.style.background = "var(--amber)";
+        else btn.style.background = "var(--blueTint)";
       }
 
+      // Badge: ONLY show numbers while user is selecting
       if (badge) {
-  if (gameOver) {
-    badge.textContent = "";
-    badge.classList.remove("badge-correct");
-  } else if (pickedPos >= 0) {
-    badge.textContent = String(pickedPos + 1);
-    badge.classList.remove("badge-correct");
-  } else {
-    badge.textContent = "";
-    badge.classList.remove("badge-correct");
-  }
-}
-
+        if (gameOver) {
+          badge.textContent = "";
+          badge.classList.remove("badge-correct");
+        } else if (pickedPos >= 0) {
+          badge.textContent = String(pickedPos + 1);
+          badge.classList.remove("badge-correct");
+        } else {
+          badge.textContent = "";
+          badge.classList.remove("badge-correct");
+        }
+      }
 
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
     });
@@ -540,15 +536,14 @@
     const newFeedback = {};
     const newCorrect = {};
 
-    
+    currentPick.forEach((eventIdx, pos) => {
+      const c = row[pos];
+      newFeedback[eventIdx] = c;
+      if (c === "G") newCorrect[eventIdx] = pos + 1;
+    });
+
     feedbackMap = newFeedback;
     correctPosMap = newCorrect;
-
-    currentPick.forEach((eventIdx, pos) => {
-      if (row[pos] === "G") {
-        placedMap[eventIdx] = pos + 1;
-      }
-    });
 
     attempts.push(row);
     saveState();
@@ -639,7 +634,6 @@
       attemptedSignatures = [];
       feedbackMap = {};
       correctPosMap = {};
-      placedMap = {};
 
       displayOrder = events.map((_, i) => i);
 
