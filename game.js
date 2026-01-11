@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
   // v3.2 — share button shown on game over; undo/clear hidden on game over
-  const VERSION = "3.2";
+  const VERSION = "3.3";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "11 Jan 2026 17:15 GMT";
+  const LAST_UPDATED = "11 Jan 2026 18:50 GMT";
 
   const $ = (id) => document.getElementById(id);
 
