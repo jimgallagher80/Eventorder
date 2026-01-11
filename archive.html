@@ -4,17 +4,29 @@
   <meta charset="UTF-8" />
   <title>Order These — Archive</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css?v=237" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css?v=238" />
 </head>
 
 <body>
   <!-- Sticky top bar -->
   <header class="topbar">
     <div class="left-actions">
-      <!-- Menu button (left) -->
-      <button id="menuBtn" class="icon-btn" type="button" aria-label="Menu" aria-expanded="false">
-        <img src="menu.PNG" alt="" class="icon-img"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+      <!-- Menu button -->
+      <button
+        id="menuBtn"
+        class="icon-btn"
+        type="button"
+        aria-label="Menu"
+        aria-expanded="false"
+      >
+        <img
+          src="menu.PNG"
+          alt=""
+          class="icon-img"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
+        />
         <span class="icon-fallback" style="display:none;">☰</span>
       </button>
     </div>
@@ -30,7 +42,7 @@
       <div id="logoText" class="logo-text" style="display:none;">Order These</div>
     </div>
 
-    <!-- spacer to balance layout -->
+    <!-- Spacer to balance layout -->
     <div class="right-actions"></div>
   </header>
 
@@ -42,11 +54,17 @@
     <a class="menu-item" href="about.html">About</a>
   </div>
 
+  <!-- Main content -->
   <main>
     <p class="meta">Archive</p>
-    <p class="subtitle"><strong>All available puzzle dates.</strong></p>
+
+    <p class="subtitle">
+      <strong>All available puzzle dates.</strong>
+    </p>
+
     <p class="archive-note">
-      These are all on display now for testing purposes. When the game goes live, only past games will be available to open.
+      These are all on display now for testing purposes. When the game goes live,
+      only past games will be available to open.
     </p>
 
     <p id="archiveMessage" class="message"></p>
@@ -56,46 +74,54 @@
     <p id="buildLine" class="buildline"></p>
   </main>
 
-  <script src="archive.js?v=236" defer></script>
+  <!-- Archive logic -->
+  <script src="archive.js?v=238" defer></script>
 
-  <!-- Menu dropdown wiring (kept inline so Archive always works) -->
+  <!-- Menu dropdown wiring + build line (Safari/iOS safe) -->
   <script>
-  (() => {
-    const $ = (id) => document.getElementById(id);
+    document.addEventListener("DOMContentLoaded", () => {
+      const $ = (id) => document.getElementById(id);
 
-    function closeMenu() {
-      const dd = $("menuDropdown");
-      const btn = $("menuBtn");
-      if (dd) dd.hidden = true;
-      if (btn) btn.setAttribute("aria-expanded", "false");
-    }
+      // Match index.html build line exactly
+      const buildLine = $("buildLine");
+      if (buildLine) {
+        buildLine.textContent = "Beta v3.4 · last updated 11 Jan 2026 19:01 GMT";
+      }
 
-    function toggleMenu() {
-      const dd = $("menuDropdown");
-      const btn = $("menuBtn");
-      if (!dd) return;
-      const willOpen = dd.hidden === true;
-      dd.hidden = !willOpen;
-      if (btn) btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-    }
+      const menuBtn = $("menuBtn");
+      const dropdown = $("menuDropdown");
 
-    const menuBtn = $("menuBtn");
-    const dropdown = $("menuDropdown");
+      function closeMenu() {
+        if (dropdown) dropdown.hidden = true;
+        if (menuBtn) menuBtn.setAttribute("aria-expanded", "false");
+      }
 
-    if (menuBtn) {
-      menuBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        toggleMenu();
+      function toggleMenu() {
+        if (!dropdown) return;
+        const willOpen = dropdown.hidden === true;
+        dropdown.hidden = !willOpen;
+        if (menuBtn) menuBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      }
+
+      if (menuBtn) {
+        const handler = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleMenu();
+        };
+
+        // iOS/Safari reliability
+        menuBtn.addEventListener("click", handler, { passive: false });
+        menuBtn.addEventListener("touchend", handler, { passive: false });
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!dropdown || dropdown.hidden) return;
+        const withinMenu = dropdown.contains(e.target);
+        const withinBtn = menuBtn && menuBtn.contains(e.target);
+        if (!withinMenu && !withinBtn) closeMenu();
       });
-    }
-
-    document.addEventListener("click", (e) => {
-      if (!dropdown || dropdown.hidden) return;
-      const withinMenu = dropdown.contains(e.target);
-      const withinBtn = menuBtn && menuBtn.contains(e.target);
-      if (!withinMenu && !withinBtn) closeMenu();
     });
-  })();
   </script>
 </body>
 </html>
