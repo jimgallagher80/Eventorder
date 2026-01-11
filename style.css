@@ -171,7 +171,9 @@ main{
   width: calc((var(--tile) * 2) + var(--tileGap));
   margin-left: auto;
   margin-right: auto;
+  justify-content: center;
 }
+
 
 /* Make Undo/Clear/Share the same width as a tile */
 #undo, #clear, #share{
