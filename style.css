@@ -26,17 +26,17 @@
   --topbarBase: 56px;
 
   /* Tile sizing */
-  --tile: 132px;        /* bigger tiles; tweak 124–140 if you want */
+  --tile: 132px;
   --tileGap: 12px;
   --tileRadius: 14px;
 
-  /* Text sizing (chosen to comfortably fit up to ~16 chars on one line with padding) */
+  /* Text sizing */
   --titleSize: 13px;
   --valueSize: 12px;
 
   /* Always keep internal breathing room */
   --tilePad: 12px;
-  --badgeSpace: 40px;   /* reserved space at bottom for badge */
+  --badgeSpace: 40px;
 }
 
 *{ box-sizing: border-box; }
@@ -70,15 +70,20 @@ button,
   border-bottom: 1px solid var(--border);
   padding-top: var(--safeTop);
   height: calc(var(--topbarBase) + var(--safeTop));
+
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
 }
 
 .left-actions{
   display: flex;
-  gap: 1px;
+  gap: 4px;             /* slightly closer */
   padding-left: 12px;
+}
+
+.right-actions{
+  width: 64px;          /* balances the centre logo */
 }
 
 .icon-btn{
@@ -97,23 +102,12 @@ button,
   opacity: 0.6;
 }
 
+/* Both icons render at the same size */
 .icon-img{
   width: 22px;
   height: 22px;
   display: block;
 }
-
-.menu-img{
-  width: 23px;
-  height: 23px;
-}
-
-.menu-img{
-  transform: scale(0.88);
-  transform-origin: center;
-}
-
-
 
 .icon-fallback{
   font-size: 18px;
@@ -124,7 +118,6 @@ button,
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-right: 64px; /* balances left buttons visually */
 }
 
 .logo{
@@ -210,10 +203,7 @@ button.secondary{
   border-radius: 14px;
 }
 
-/* ===== GRID LAYOUT =====
-   Fixed-size squares so all tiles are identical.
-   Centred grid gives you consistent side whitespace.
-*/
+/* ===== GRID LAYOUT ===== */
 .event-buttons{
   margin: 12px auto 0 auto;
 
@@ -246,7 +236,6 @@ button.secondary{
   width: var(--tile);
   aspect-ratio: 1 / 1;
 
-  /* padding + reserved space for bottom-right badge */
   padding: var(--tilePad);
   padding-bottom: calc(var(--badgeSpace) + 2px);
 
@@ -258,11 +247,10 @@ button.secondary{
 
   text-align: center;
 
-  /* never let contents touch edges */
   overflow: hidden;
 }
 
-/* Darken selected tile (works over any colour) */
+/* Darken selected tile */
 .event-btn.selected::after{
   content: "";
   position: absolute;
@@ -294,16 +282,14 @@ button.secondary{
 
   white-space: normal;
 
-  /* CRITICAL: never split a word across lines */
   word-break: normal;
   overflow-wrap: normal;
   hyphens: none;
 
-  /* better line breaks where supported */
   text-wrap: balance;
 }
 
-/* Value reveal (final reveal only) */
+/* Value reveal */
 .event-value{
   margin-top: 6px;
   font-size: var(--valueSize);
@@ -312,7 +298,6 @@ button.secondary{
 
   white-space: normal;
 
-  /* CRITICAL: never split a word across lines */
   word-break: normal;
   overflow-wrap: normal;
   hyphens: none;
@@ -326,7 +311,7 @@ button.secondary{
   cursor: default;
 }
 
-/* Choice badge (bottom-right circle) */
+/* Choice badge */
 .choice-badge{
   position: absolute;
   right: 10px;
@@ -351,10 +336,10 @@ button.secondary{
   padding: 0;
   text-align: center;
 
-  z-index: 2; /* above selected overlay */
+  z-index: 2;
 }
 
-/* Correct-position badge styling (light grey number) */
+/* Correct-position badge styling */
 .choice-badge.badge-correct{
   color: #9ca3af;
   border-color: rgba(15, 23, 42, 0.12);
@@ -376,8 +361,8 @@ button.secondary{
   display: none;
 }
 
-/* Dropdown menu */
-.menu{
+/* Dropdown menu (matches your HTML: #menuDropdown.menu-dropdown) */
+.menu-dropdown{
   position: fixed;
   top: calc(var(--topbarBase) + var(--safeTop));
   left: 12px;
