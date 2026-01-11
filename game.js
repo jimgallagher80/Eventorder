@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
-  // v2.2 — 2x3/3x2 grid tiles + square layout + darker selected tiles + badge bottom-right
-  const VERSION = "3.1";
+  // v3.2 — share button shown on game over; undo/clear hidden on game over
+  const VERSION = "3.2";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "11 Jan 2026 15:10 GMT";
+  const LAST_UPDATED = "11 Jan 2026 17:15 GMT";
 
   const $ = (id) => document.getElementById(id);
 
@@ -273,13 +273,23 @@
 
     const canEdit = !gameOver;
 
-    if (undoBtn) undoBtn.disabled = !canEdit || currentPick.length === 0;
-    if (clearBtn) clearBtn.disabled = !canEdit || currentPick.length === 0;
+    // Keep the row visible so Share can appear after game over
+    if (controlsRow) controlsRow.style.display = "flex";
 
-    if (controlsRow) controlsRow.style.display = gameOver ? "none" : "flex";
+    // Undo/Clear: only relevant during play
+    if (undoBtn) {
+      undoBtn.hidden = gameOver;
+      undoBtn.disabled = !canEdit || currentPick.length === 0;
+    }
 
+    if (clearBtn) {
+      clearBtn.hidden = gameOver;
+      clearBtn.disabled = !canEdit || currentPick.length === 0;
+    }
+
+    // Share: only relevant after completion
     if (shareBtn) {
-      shareBtn.style.display = gameOver ? "inline-flex" : "none";
+      shareBtn.hidden = !gameOver;
       shareBtn.disabled = !gameOver;
     }
   }
