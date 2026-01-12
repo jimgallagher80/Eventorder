@@ -490,26 +490,21 @@
         else btn.style.background = "var(--blueTint)";
       }
 
-      // Badge: ONLY show numbers while user is selecting
+      // Badge behaviour:
+      // - while selecting: show 1..6 on chosen tiles
+      // - after game over: show the correct position number on every tile
       if (badge) {
-  if (gameOver) {
-    badge.textContent = "";
-    badge.classList.remove("badge-correct");
-  } else if (pickedPos >= 0) {
-    badge.textContent = String(pickedPos + 1);
-    badge.classList.remove("badge-correct");
-  } else {
-    const placed = placedMap[idx];
-    if (typeof placed === "number" && placed >= 1 && placed <= 6) {
-      badge.textContent = String(placed);
-      badge.classList.add("badge-correct");
-    } else {
-      badge.textContent = "";
-      badge.classList.remove("badge-correct");
-    }
-  }
-}
-
+        if (gameOver) {
+          badge.textContent = String(e.order);
+          badge.classList.remove("badge-correct");
+        } else if (pickedPos >= 0) {
+          badge.textContent = String(pickedPos + 1);
+          badge.classList.remove("badge-correct");
+        } else {
+          badge.textContent = "";
+          badge.classList.remove("badge-correct");
+        }
+      }
 
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
     });
