@@ -372,11 +372,6 @@ button.secondary{
   background: var(--green);
 }
 
-/* Hide badge on final reveal */
-.event-btn.final-reveal .choice-badge{
-  display: none;
-}
-
 /* Dropdown menu (matches your HTML: #menuDropdown.menu-dropdown) */
 .menu-dropdown{
   position: fixed;
