@@ -1,10 +1,10 @@
 (() => {
   // Order These — daily click-to-select
   // v3.4 — force per-attempt tile colours via inline style (Safari-proof)
-  const VERSION = "3.4";
+  const VERSION = "3.5";
 
   // Fixed "last updated" (Europe/London)
-  const LAST_UPDATED = "11 Jan 2026 19:01 GMT";
+  const LAST_UPDATED = "12 Jan 2026 01:08 GMT";
 
   const $ = (id) => document.getElementById(id);
 
@@ -492,17 +492,24 @@
 
       // Badge: ONLY show numbers while user is selecting
       if (badge) {
-        if (gameOver) {
-          badge.textContent = "";
-          badge.classList.remove("badge-correct");
-        } else if (pickedPos >= 0) {
-          badge.textContent = String(pickedPos + 1);
-          badge.classList.remove("badge-correct");
-        } else {
-          badge.textContent = "";
-          badge.classList.remove("badge-correct");
-        }
-      }
+  if (gameOver) {
+    badge.textContent = "";
+    badge.classList.remove("badge-correct");
+  } else if (pickedPos >= 0) {
+    badge.textContent = String(pickedPos + 1);
+    badge.classList.remove("badge-correct");
+  } else {
+    const placed = placedMap[idx];
+    if (typeof placed === "number" && placed >= 1 && placed <= 6) {
+      badge.textContent = String(placed);
+      badge.classList.add("badge-correct");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("badge-correct");
+    }
+  }
+}
+
 
       btn.disabled = gameOver || pickedPos >= 0 || currentPick.length >= 6;
     });
