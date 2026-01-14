@@ -1,257 +1,321 @@
-<!doctype html>
-<html lang="en-GB">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>South West Coastal Path — Route Map</title>
+(() => {
+  "use strict";
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
+  // Use your enriched file in the same folder.
+  // If you renamed it back to ALL_COASTAL_LEGS.geojson, change this accordingly.
+  const GEOJSON_URL = "ALL_COASTAL_LEGS.geojson";
 
-  <style>
-    :root{
-      --bg:#0b0b0b;
-      --text:#f2f2f2;
-      --muted:#b7b7b7;
-      --panel:rgba(18,18,18,.94);
-      --border:rgba(255,255,255,.10);
-      --orange:#ff7a00;
-      --shadow:0 16px 44px rgba(0,0,0,.55);
-      --safeTop: env(safe-area-inset-top);
-      --safeBottom: env(safe-area-inset-bottom);
+  const ORANGE = "#ff7a00";
+
+  const $ = (id) => document.getElementById(id);
+
+  const panel = $("panel");
+  const panelTip = $("panelTip");
+  const panelExpanded = $("panelExpanded");
+  const panelLegTitle = $("panelLegTitle");
+  const panelSubtitle = $("panelSubtitle");
+  const detailsGrid = $("detailsGrid");
+  const closeBtn = $("closeBtn");
+  const legSelect = $("legSelect");
+
+  // Map init
+  const map = L.map("map", {
+    zoomControl: true,
+    preferCanvas: true,
+  });
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors",
+  }).addTo(map);
+
+  let routeLayer = null;
+  const startMarkersLayer = L.layerGroup().addTo(map);
+
+  let selectedLineLayer = null;
+  let finishMarker = null;
+
+  // For "close -> zoom out a little"
+  let lastSelectedCenter = null;
+  let lastSelectedZoom = null;
+
+  // Indexes for quick selection
+  const layerByLeg = new Map();   // leg -> polyline layer
+  const featureByLeg = new Map(); // leg -> feature.properties
+
+  function safe(v) {
+    return (v === undefined || v === null || v === "") ? "—" : v;
+  }
+
+  function formatKm(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    return `${n.toFixed(2)} km`;
+  }
+
+  function formatM(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "—";
+    return `${Math.round(n)} m`;
+  }
+
+  function asLink(url, label) {
+    if (!url) return "—";
+    const u = String(url);
+    return `<a href="${u}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  }
+
+  function lineStyle(selected) {
+    return {
+      color: ORANGE,
+      weight: selected ? 10 : 6,
+      opacity: 0.95,
+      lineCap: "round",
+      lineJoin: "round",
+    };
+  }
+
+  function diamondIcon(leg) {
+    return L.divIcon({
+      className: "",
+      html: `
+        <div class="diamond-wrap" aria-label="Leg ${leg} start marker">
+          <div class="diamond-num">${leg}</div>
+        </div>
+      `,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      popupAnchor: [0, -14],
+    });
+  }
+
+  function finishIcon() {
+    // Emoji flag is simplest; we can swap to SVG later if you want.
+    return L.divIcon({
+      className: "finish-flag",
+      html: "🏁",
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
+    });
+  }
+
+  function setCollapsed() {
+    panel.classList.remove("expanded");
+    panel.classList.add("collapsed");
+    panelExpanded.style.display = "none";
+    panelTip.style.display = "block";
+  }
+
+  function setExpanded() {
+    panel.classList.remove("collapsed");
+    panel.classList.add("expanded");
+    panelTip.style.display = "none";
+    panelExpanded.style.display = "block";
+  }
+
+  function clearFinishFlag() {
+    if (finishMarker) {
+      map.removeLayer(finishMarker);
+      finishMarker = null;
+    }
+  }
+
+  function clearSelection(zoomOutALittle = false) {
+    if (selectedLineLayer) {
+      selectedLineLayer.setStyle(lineStyle(false));
+      selectedLineLayer = null;
     }
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background:var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing:antialiased;
-      text-rendering:optimizeLegibility;
+    clearFinishFlag();
+
+    // Reset dropdown to placeholder (without triggering selection)
+    legSelect.value = "";
+
+    if (zoomOutALittle && lastSelectedCenter && Number.isFinite(lastSelectedZoom)) {
+      const newZoom = Math.max(lastSelectedZoom - 1, map.getMinZoom());
+      map.setView(lastSelectedCenter, newZoom, { animate: true });
     }
 
-    /* Header */
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:1000;
-      padding: calc(12px + var(--safeTop)) 14px 12px;
-      background:linear-gradient(to bottom, rgba(0,0,0,.92), rgba(0,0,0,.74));
-      backdrop-filter:saturate(140%) blur(10px);
-      border-bottom:1px solid rgba(255,255,255,.06);
+    setCollapsed();
+  }
+
+  function renderDetails(props) {
+    const leg = safe(props.leg);
+    const start = safe(props.start);
+    const end = safe(props.end);
+
+    panelLegTitle.textContent = `Leg ${leg}`;
+    panelSubtitle.textContent = (start !== "—" && end !== "—") ? `${start} to ${end}` : "";
+
+    detailsGrid.innerHTML = `
+      <div class="row"><div class="label">Distance</div><div class="value">${formatKm(props.distance_km)}</div></div>
+      <div class="row"><div class="label">Elevation gain</div><div class="value">${formatM(props.elevation_gain_m)}</div></div>
+      <div class="row"><div class="label">Difficulty</div><div class="value">${safe(props.difficulty)}</div></div>
+      <div class="row"><div class="label">Estimated running time</div><div class="value">${safe(props.est_time_running)}</div></div>
+      <div class="row"><div class="label">Estimated walking time</div><div class="value">${safe(props.est_time_walking)}</div></div>
+      <div class="row"><div class="label">Strava route</div><div class="value">${asLink(props.strava_url, "Open")}</div></div>
+      <div class="row"><div class="label">Strava GPX</div><div class="value">${asLink(props.strava_gpx_url, "Download")}</div></div>
+    `;
+  }
+
+  function fitToLayer(layer) {
+    // Fit the leg nicely on screen; pad a bit so it’s not edge-to-edge.
+    const b = layer.getBounds();
+    if (b && b.isValid()) {
+      map.fitBounds(b.pad(0.18), { animate: true });
+    }
+  }
+
+  function addFinishFlagForFeature(feature) {
+    clearFinishFlag();
+
+    const coords = feature?.geometry?.coordinates;
+    if (!coords || !coords.length) return;
+
+    const last = coords[coords.length - 1]; // [lon, lat]
+    if (!Array.isArray(last) || last.length < 2) return;
+
+    const latlng = L.latLng(last[1], last[0]);
+    finishMarker = L.marker(latlng, { icon: finishIcon(), interactive: false }).addTo(map);
+  }
+
+  function selectLeg(leg, source = "unknown") {
+    const layer = layerByLeg.get(String(leg));
+    const props = featureByLeg.get(String(leg));
+
+    if (!layer || !props) return;
+
+    // Remember current view after we fit (for zoom-out-a-little on close)
+    // We’ll set these AFTER fitting, so the “close” zoom-out is relative to the selected leg view.
+    setExpanded();
+
+    // Style selection
+    if (selectedLineLayer && selectedLineLayer !== layer) {
+      selectedLineLayer.setStyle(lineStyle(false));
+    }
+    selectedLineLayer = layer;
+    layer.setStyle(lineStyle(true));
+
+    // Ensure dropdown reflects selection
+    legSelect.value = String(leg);
+
+    // Render panel
+    renderDetails(props);
+
+    // Fit map to selected leg
+    fitToLayer(layer);
+
+    // Add finish flag for selected leg only
+    addFinishFlagForFeature(layer.feature);
+
+    // After animation, capture view for close behaviour
+    // (Small timeout is enough; Leaflet fitBounds animates)
+    window.setTimeout(() => {
+      lastSelectedCenter = map.getCenter();
+      lastSelectedZoom = map.getZoom();
+    }, 250);
+  }
+
+  function populateDropdown(legs) {
+    // legs is array of leg strings/numbers sorted
+    const frag = document.createDocumentFragment();
+    for (const leg of legs) {
+      const opt = document.createElement("option");
+      opt.value = String(leg);
+      opt.textContent = `Leg ${leg}`;
+      frag.appendChild(opt);
+    }
+    legSelect.appendChild(frag);
+  }
+
+  async function load() {
+    const res = await fetch(GEOJSON_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch GeoJSON (${res.status})`);
+    const geojson = await res.json();
+
+    // Build route layer and indexes
+    routeLayer = L.geoJSON(geojson, {
+      style: () => lineStyle(false),
+      filter: (f) => f && f.geometry && f.geometry.type === "LineString",
+      onEachFeature: (feature, layer) => {
+        const props = feature.properties || {};
+        const leg = props.leg;
+        if (leg === undefined || leg === null || leg === "") return;
+
+        const legKey = String(leg);
+
+        layerByLeg.set(legKey, layer);
+        featureByLeg.set(legKey, props);
+
+        layer.on("click", () => selectLeg(legKey, "line"));
+        // Keep popup minimal
+        layer.bindPopup(`Leg ${legKey}`, { closeButton: true });
+      },
+    }).addTo(map);
+
+    // Start markers (numbered diamonds)
+    startMarkersLayer.clearLayers();
+    geojson.features
+      .filter(f => f && f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates))
+      .forEach(f => {
+        const props = f.properties || {};
+        const leg = props.leg;
+        if (leg === undefined || leg === null || leg === "") return;
+
+        const coords = f.geometry.coordinates;
+        if (!coords.length) return;
+
+        const first = coords[0]; // [lon, lat]
+        const latlng = L.latLng(first[1], first[0]);
+
+        const marker = L.marker(latlng, {
+          icon: diamondIcon(leg),
+          keyboard: true,
+          title: `Leg ${leg} start`,
+          riseOnHover: true,
+        }).addTo(startMarkersLayer);
+
+        marker.on("click", () => selectLeg(String(leg), "marker"));
+        marker.bindPopup(`Leg ${leg}`, { closeButton: true });
+      });
+
+    // Populate dropdown sorted by leg number
+    const legsSorted = Array.from(layerByLeg.keys())
+      .map(k => Number(k))
+      .filter(n => Number.isFinite(n))
+      .sort((a,b) => a - b)
+      .map(n => String(n));
+
+    populateDropdown(legsSorted);
+
+    // Initial view: fit full route, minimal padding so it fills screen
+    const b = routeLayer.getBounds();
+    if (b && b.isValid()) {
+      map.fitBounds(b.pad(0.06), { animate: false });
     }
 
-    .topbar-row{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-    }
+    // Start collapsed
+    setCollapsed();
 
-    h1{
-      font-size:28px;
-      line-height:1.05;
-      margin:0;
-      font-weight:800;
-      letter-spacing:-0.02em;
-    }
+    // Dropdown selection
+    legSelect.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (!val) return;
+      selectLeg(val, "dropdown");
+    });
 
-    .controls{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-    }
+    // Close button
+    closeBtn.addEventListener("click", () => {
+      clearSelection(true); // zoom out a little
+    });
+  }
 
-    select{
-      appearance:none;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:14px;
-      font-weight:650;
-      font-size:16px;
-      min-width:140px;
-    }
+  load().catch((err) => {
+    console.error(err);
+    // If load fails, keep a simple message in the collapsed panel
+    panelTip.textContent = "Couldn’t load the route. Please check the GeoJSON file path/name.";
+    setCollapsed();
+  });
 
-    /* Map */
-    #map{
-      height: calc(100vh - 86px);
-      width: 100%;
-    }
-
-    /* Bottom panel (collapsed by default) */
-    .panel{
-      position:fixed;
-      left:10px;
-      right:10px;
-      bottom: calc(10px + var(--safeBottom));
-      z-index:1100;
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:18px;
-      box-shadow:var(--shadow);
-      overflow:hidden;
-      transition: max-height 180ms ease, padding 180ms ease;
-    }
-
-    .panel.collapsed{
-      padding: 12px 14px;
-      max-height: 64px;
-    }
-
-    .panel.expanded{
-      padding: 14px 14px 12px;
-      max-height: 48vh;
-      overflow:auto;
-    }
-
-    .panel-tip{
-      font-size:14px;
-      color:var(--muted);
-      line-height:1.35;
-      margin:0;
-    }
-
-    .panel-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:10px;
-    }
-
-    .panel-title{
-      margin:0;
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:-0.02em;
-    }
-
-    .closeBtn{
-      appearance:none;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      width:36px;
-      height:36px;
-      border-radius:12px;
-      font-size:20px;
-      line-height:1;
-      cursor:pointer;
-      flex:0 0 auto;
-    }
-
-    .subtitle{
-      margin:0 0 12px;
-      color:var(--muted);
-      font-size:16px;
-      line-height:1.3;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:8px;
-      font-size:16px;
-    }
-
-    .row{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      border-bottom:1px dashed rgba(255,255,255,.10);
-      padding-bottom:8px;
-    }
-    .row:last-child{ border-bottom:none; padding-bottom:0; }
-
-    .label{ color:var(--muted); min-width:45%; }
-    .value{ text-align:right; word-break:break-word; }
-
-    a{ color:#9ad1ff; text-decoration:none; }
-    a:hover{ text-decoration:underline; }
-
-    /* Numbered diamond marker */
-    .diamond-wrap{
-      width:30px;
-      height:30px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      transform: rotate(45deg);
-      background: var(--orange);
-      border: 2px solid rgba(0,0,0,.65);
-      box-shadow: 0 0 0 4px rgba(0,0,0,.35);
-    }
-    .diamond-num{
-      transform: rotate(-45deg);
-      font-weight:900;
-      color:#111;
-      font-size:13px;
-      line-height:1;
-    }
-
-    /* Finish flag (only when selected) */
-    .finish-flag{
-      font-size:20px;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
-    }
-
-    .leaflet-popup-content-wrapper{ border-radius:14px; }
-
-    @media (min-width: 820px){
-      h1{ font-size:32px; }
-      #map{ height: calc(100vh - 92px); }
-      .panel{ left:14px; right:14px; max-width:720px; }
-    }
-  </style>
-</head>
-
-<body>
-  <header class="topbar">
-    <div class="topbar-row">
-      <h1>South West Coastal Path<br>— Route Map</h1>
-
-      <div class="controls">
-        <select id="legSelect" aria-label="Select leg">
-          <option value="">Select leg…</option>
-        </select>
-      </div>
-    </div>
-  </header>
-
-  <div id="map" aria-label="Route map"></div>
-
-  <!-- Collapsed by default -->
-  <section class="panel collapsed" id="panel" aria-live="polite">
-    <p class="panel-tip" id="panelTip">Zoom with pinch/scroll, drag to pan. Tap a leg to view details.</p>
-
-    <!-- Expanded content (hidden when collapsed) -->
-    <div id="panelExpanded" style="display:none">
-      <div class="panel-head">
-        <h2 class="panel-title" id="panelLegTitle">Leg</h2>
-        <button class="closeBtn" id="closeBtn" type="button" aria-label="Close">×</button>
-      </div>
-
-      <p class="subtitle" id="panelSubtitle"></p>
-
-      <div class="grid" id="detailsGrid"></div>
-    </div>
-  </section>
-
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
-
-  <script src="./app.js"></script>
-</body>
-</html>
+})();
