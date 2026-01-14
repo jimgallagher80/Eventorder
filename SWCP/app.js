@@ -1,7 +1,9 @@
-/* app.js — Leaflet map loader for ALL_COASTAL_LEGS.geojson */
+/* app.js — Leaflet map for SWCP legs (enriched GeoJSON) */
 
 (() => {
   const GEOJSON_URL = "./ALL_COASTAL_LEGS.geojson";
+
+  const ORANGE = "#ff7a00";
 
   const els = {
     statusText: document.getElementById("statusText"),
@@ -11,108 +13,159 @@
     btnClear: document.getElementById("btnClear"),
   };
 
-  // Create map
   const map = L.map("map", {
     zoomControl: true,
-    preferCanvas: true, // better performance with lots of points
+    preferCanvas: true,
   });
 
-  // Base tiles (OpenStreetMap)
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
   }).addTo(map);
 
-  // Selection state
   let geojsonLayer = null;
   let selectedLayer = null;
 
-  // Basic styling helpers
-  function styleForFeature(feature) {
-    // If later you add a `status` property (available/taken/completed), colour can change here.
-    // For now, everything uses a clean default.
-    return {
-      weight: 5,
-      opacity: 0.9,
-      // Leaflet expects colour strings; keep it simple (white lines on map).
-      color: "#ffffff",
-    };
-  }
-
-  function styleSelected() {
-    return {
-      weight: 7,
-      opacity: 1,
-      color: "#ffd400", // highlighted leg
-    };
-  }
-
-  function clearSelection() {
-    if (selectedLayer) {
-      // Reset previous selection style
-      selectedLayer.setStyle(styleForFeature(selectedLayer.feature));
-      selectedLayer = null;
-    }
-    els.legTitle.textContent = "None";
-    els.legDetails.textContent = "Tap/click a segment on the map to see its details here.";
-  }
+  const startMarkers = L.layerGroup().addTo(map);
 
   function setStatus(text) {
     els.statusText.textContent = text;
   }
 
-  function getLegLabel(feature) {
-    const p = feature?.properties || {};
-    const leg = (p.leg !== undefined && p.leg !== null) ? `Leg ${p.leg}` : "Leg";
-    const name = p.name ? ` — ${p.name}` : "";
-    return `${leg}${name}`;
+  function fmtNum(val, decimals = 1) {
+    if (val === null || val === undefined || val === "") return null;
+    const n = Number(val);
+    if (!Number.isFinite(n)) return null;
+    return n.toFixed(decimals);
   }
 
-  function getLegDetails(feature) {
+  function safeLink(url, label) {
+    if (!url) return null;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  }
+
+  function legTitle(feature) {
     const p = feature?.properties || {};
-    const parts = [];
+    const leg = (p.leg !== undefined && p.leg !== null) ? `Leg ${p.leg}` : "Leg";
+    const se = (p.start && p.end) ? `${p.start} to ${p.end}` : null;
+    return se ? `${leg} — ${se}` : leg;
+  }
 
-    if (p.leg !== undefined && p.leg !== null) parts.push(`Leg number: ${p.leg}`);
-    if (p.name) parts.push(`Name: ${p.name}`);
-    if (p.point_count) parts.push(`Track points: ${p.point_count.toLocaleString("en-GB")}`);
+  function legDetailsHTML(feature) {
+    const p = feature?.properties || {};
+    const lines = [];
 
-    // Placeholder for later integration with your spreadsheet data:
-    // if (p.distance_km) parts.push(`Distance: ${p.distance_km} km`);
-    // if (p.elevation_m) parts.push(`Elevation gain: ${p.elevation_m} m`);
-    // if (p.difficulty) parts.push(`Difficulty: ${p.difficulty}`);
-    // if (p.strava_url) parts.push(`Strava: ${p.strava_url}`);
+    // Required fields in your preferred order
+    lines.push(`<strong>Leg ${p.leg ?? "?"}</strong>`);
 
-    if (!parts.length) return "No details available for this leg.";
-    return parts.join(" • ");
+    if (p.start && p.end) lines.push(`${p.start} to ${p.end}`);
+
+    const dist = fmtNum(p.distance_km, 1);
+    if (dist) lines.push(`Distance: ${dist} km`);
+
+    const elev = fmtNum(p.elevation_gain_m, 0);
+    if (elev) lines.push(`Elevation gain: ${elev} m`);
+
+    if (p.difficulty) lines.push(`Difficulty: ${p.difficulty}`);
+
+    if (p.est_time_running) lines.push(`Estimated running time: ${p.est_time_running}`);
+    if (p.est_time_walking) lines.push(`Estimated walking time: ${p.est_time_walking}`);
+
+    const strava = safeLink(p.strava_url, "Strava route");
+    if (strava) lines.push(strava);
+
+    const gpx = safeLink(p.strava_gpx_url, "Strava GPX");
+    if (gpx) lines.push(gpx);
+
+    return lines.map((x) => `<div>${x}</div>`).join("");
+  }
+
+  function styleForFeature(feature) {
+    return {
+      weight: 6,
+      opacity: 0.95,
+      color: ORANGE,
+      lineCap: "round",
+      lineJoin: "round",
+    };
+  }
+
+  function styleSelected() {
+    return {
+      weight: 8,
+      opacity: 1,
+      color: "#ffd400",
+      lineCap: "round",
+      lineJoin: "round",
+    };
+  }
+
+  function clearSelection() {
+    if (selectedLayer) {
+      selectedLayer.setStyle(styleForFeature(selectedLayer.feature));
+      selectedLayer = null;
+    }
+    els.legTitle.textContent = "None";
+    els.legDetails.innerHTML = "Tap/click a route segment or a diamond marker to see details here.";
+  }
+
+  function selectLayer(layer, openPopup = true) {
+    if (!layer) return;
+
+    // unselect previous
+    if (selectedLayer && selectedLayer !== layer) {
+      selectedLayer.setStyle(styleForFeature(selectedLayer.feature));
+    }
+
+    selectedLayer = layer;
+    layer.setStyle(styleSelected());
+
+    const title = legTitle(layer.feature);
+    els.legTitle.textContent = title;
+    els.legDetails.innerHTML = legDetailsHTML(layer.feature);
+
+    if (openPopup) {
+      layer.bindPopup(title, { closeButton: true }).openPopup();
+    }
+  }
+
+  function makeStartMarker(feature, layer) {
+    const coords = feature?.geometry?.coordinates;
+    if (!coords || !coords.length) return;
+
+    // GeoJSON coords are [lon, lat]
+    const [lon, lat] = coords[0];
+    if (typeof lat !== "number" || typeof lon !== "number") return;
+
+    const icon = L.divIcon({
+      className: "start-marker",
+      html: `<div class="diamond"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
+    });
+
+    const marker = L.marker([lat, lon], { icon, interactive: true, keyboard: false });
+    marker.on("click", () => {
+      selectLayer(layer, true);
+    });
+
+    startMarkers.addLayer(marker);
   }
 
   function onEachFeature(feature, layer) {
-    layer.on("click", () => {
-      // Unselect previous
-      if (selectedLayer && selectedLayer !== layer) {
-        selectedLayer.setStyle(styleForFeature(selectedLayer.feature));
-      }
-
-      // Select new
-      selectedLayer = layer;
-      layer.setStyle(styleSelected());
-
-      // Update panel
-      els.legTitle.textContent = getLegLabel(feature);
-      els.legDetails.textContent = getLegDetails(feature);
-
-      // Optional popup
-      layer.bindPopup(getLegLabel(feature), { closeButton: true }).openPopup();
-    });
+    layer.on("click", () => selectLayer(layer, true));
+    makeStartMarker(feature, layer);
   }
 
   async function loadRoute() {
     try {
-      setStatus("Loading GeoJSON…");
+      setStatus("Loading route…");
       const res = await fetch(GEOJSON_URL, { cache: "no-store" });
       if (!res.ok) throw new Error(`Failed to fetch ${GEOJSON_URL} (${res.status})`);
-
       const data = await res.json();
+
+      // Clear markers if reloading
+      startMarkers.clearLayers();
 
       geojsonLayer = L.geoJSON(data, {
         style: styleForFeature,
@@ -123,15 +176,15 @@
       if (bounds.isValid()) {
         map.fitBounds(bounds.pad(0.08));
       } else {
-        map.setView([50.5, -4.5], 7); // fallback view (SW England-ish)
+        map.setView([50.5, -4.5], 7);
       }
 
-      setStatus("Route loaded — tap/click a leg to inspect it.");
+      setStatus("Route loaded — tap/click a leg or its diamond marker.");
     } catch (err) {
       console.error(err);
-      setStatus("Couldn’t load the route file. Check the GeoJSON filename/path and that you’re using a web server.");
+      setStatus("Couldn’t load the route file. Check the GeoJSON filename/path.");
       els.legDetails.textContent =
-        "If you opened index.html directly from your phone/desktop (file://), fetch() may be blocked. Serve the folder over HTTP instead.";
+        "If you opened this page as a local file, fetch() may be blocked. GitHub Pages should work fine.";
     }
   }
 
@@ -142,11 +195,9 @@
     if (b && b.isValid()) map.fitBounds(b.pad(0.08));
   });
 
-  els.btnClear.addEventListener("click", () => {
-    clearSelection();
-  });
+  els.btnClear.addEventListener("click", () => clearSelection());
 
-  // Kick off
+  // Start
   clearSelection();
   loadRoute();
 })();
