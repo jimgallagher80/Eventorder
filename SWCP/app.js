@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const GEOJSON_URL = "./ALL_COASTAL_LEGS_ENRICHED.geojson";
+  const GEOJSON_URL = "ALL_COASTAL_LEGS_ENRICHED.geojson";
   const ORANGE = "#ff7a00";
 
   const $ = (id) => document.getElementById(id);
