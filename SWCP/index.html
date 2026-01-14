@@ -93,8 +93,8 @@
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    body.compact-header h1 br{ display:none; } /* keep to one line */
-    body.compact-header .controls{ display:none; } /* hide dropdown */
+    body.compact-header h1 br{ display:none; }
+    body.compact-header .controls{ display:none; }
 
     /* Map */
     #map{
@@ -122,10 +122,9 @@
       max-height: 52px;
     }
 
-    /* Make expanded panel ~half the size; allow scrolling inside */
     .panel.expanded{
       padding: 10px 12px 10px;
-      max-height: 26vh;     /* << about half of previous */
+      max-height: 26vh;
       overflow:auto;
     }
 
@@ -141,10 +140,10 @@
       align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      margin-bottom:6px;
+      margin-bottom:2px; /* tighter */
     }
 
-    /* Leg header same size as body, just bold */
+    /* Leg header: same size as body, bold */
     .panel-title{
       margin:0;
       font-size:14px;
@@ -167,11 +166,13 @@
       flex:0 0 auto;
     }
 
+    /* Start → End: bold, slightly tighter */
     .subtitle{
       margin:0 0 8px;
       color:var(--muted);
       font-size:13px;
-      line-height:1.2;
+      line-height:1.15;
+      font-weight:800;
     }
 
     /* Smaller text + tighter rows */
@@ -198,7 +199,7 @@
     a{ color:#9ad1ff; text-decoration:none; }
     a:hover{ text-decoration:underline; }
 
-    /* Numbered diamond marker */
+    /* Diamond marker */
     .diamond-wrap{
       width:30px;
       height:30px;
@@ -206,14 +207,12 @@
       align-items:center;
       justify-content:center;
       transform: rotate(45deg);
-      background: var(--orange);
       border: 2px solid rgba(0,0,0,.65);
       box-shadow: 0 0 0 4px rgba(0,0,0,.35);
     }
     .diamond-num{
       transform: rotate(-45deg);
       font-weight:900;
-      color:#111;
       font-size:13px;
       line-height:1;
     }
@@ -230,7 +229,7 @@
       h1{ font-size:30px; }
       #map{ height: calc(100vh - 92px); }
       .panel{ left:14px; right:14px; max-width:720px; }
-      .panel.expanded{ max-height: 240px; } /* desktop: fixed-ish */
+      .panel.expanded{ max-height: 240px; }
     }
   </style>
 </head>
