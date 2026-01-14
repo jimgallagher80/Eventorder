@@ -1,10 +1,7 @@
 (() => {
   "use strict";
 
-  // Use your enriched file in the same folder.
-  // If you renamed it back to ALL_COASTAL_LEGS.geojson, change this accordingly.
-  const GEOJSON_URL = "ALL_COASTAL_LEGS.geojson";
-
+  const GEOJSON_URL = "./ALL_COASTAL_LEGS_ENRICHED.geojson";
   const ORANGE = "#ff7a00";
 
   const $ = (id) => document.getElementById(id);
@@ -17,6 +14,7 @@
   const detailsGrid = $("detailsGrid");
   const closeBtn = $("closeBtn");
   const legSelect = $("legSelect");
+  const topbar = $("topbar");
 
   // Map init
   const map = L.map("map", {
@@ -35,13 +33,11 @@
   let selectedLineLayer = null;
   let finishMarker = null;
 
-  // For "close -> zoom out a little"
   let lastSelectedCenter = null;
   let lastSelectedZoom = null;
 
-  // Indexes for quick selection
-  const layerByLeg = new Map();   // leg -> polyline layer
-  const featureByLeg = new Map(); // leg -> feature.properties
+  const layerByLeg = new Map();
+  const featureByLeg = new Map();
 
   function safe(v) {
     return (v === undefined || v === null || v === "") ? "—" : v;
@@ -90,17 +86,17 @@
   }
 
   function finishIcon() {
-    // Emoji flag is simplest; we can swap to SVG later if you want.
     return L.divIcon({
       className: "finish-flag",
       html: "🏁",
-      iconSize: [24, 24],
-      iconAnchor: [12, 12],
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
       popupAnchor: [0, -12],
     });
   }
 
   function setCollapsed() {
+    document.body.classList.remove("compact-header");
     panel.classList.remove("expanded");
     panel.classList.add("collapsed");
     panelExpanded.style.display = "none";
@@ -108,6 +104,7 @@
   }
 
   function setExpanded() {
+    document.body.classList.add("compact-header");
     panel.classList.remove("collapsed");
     panel.classList.add("expanded");
     panelTip.style.display = "none";
@@ -128,8 +125,6 @@
     }
 
     clearFinishFlag();
-
-    // Reset dropdown to placeholder (without triggering selection)
     legSelect.value = "";
 
     if (zoomOutALittle && lastSelectedCenter && Number.isFinite(lastSelectedZoom)) {
@@ -152,19 +147,11 @@
       <div class="row"><div class="label">Distance</div><div class="value">${formatKm(props.distance_km)}</div></div>
       <div class="row"><div class="label">Elevation gain</div><div class="value">${formatM(props.elevation_gain_m)}</div></div>
       <div class="row"><div class="label">Difficulty</div><div class="value">${safe(props.difficulty)}</div></div>
-      <div class="row"><div class="label">Estimated running time</div><div class="value">${safe(props.est_time_running)}</div></div>
-      <div class="row"><div class="label">Estimated walking time</div><div class="value">${safe(props.est_time_walking)}</div></div>
+      <div class="row"><div class="label">Estimated running</div><div class="value">${safe(props.est_time_running)}</div></div>
+      <div class="row"><div class="label">Estimated walking</div><div class="value">${safe(props.est_time_walking)}</div></div>
       <div class="row"><div class="label">Strava route</div><div class="value">${asLink(props.strava_url, "Open")}</div></div>
       <div class="row"><div class="label">Strava GPX</div><div class="value">${asLink(props.strava_gpx_url, "Download")}</div></div>
     `;
-  }
-
-  function fitToLayer(layer) {
-    // Fit the leg nicely on screen; pad a bit so it’s not edge-to-edge.
-    const b = layer.getBounds();
-    if (b && b.isValid()) {
-      map.fitBounds(b.pad(0.18), { animate: true });
-    }
   }
 
   function addFinishFlagForFeature(feature) {
@@ -180,45 +167,61 @@
     finishMarker = L.marker(latlng, { icon: finishIcon(), interactive: false }).addTo(map);
   }
 
-  function selectLeg(leg, source = "unknown") {
-    const layer = layerByLeg.get(String(leg));
-    const props = featureByLeg.get(String(leg));
+  function fitToLayerBetweenHeaderAndPanel(layer) {
+    // Use Leaflet's padding options to keep the leg visible between header and expanded panel.
+    const bounds = layer.getBounds();
+    if (!bounds || !bounds.isValid()) return;
 
+    // Measure actual UI heights at runtime
+    const headerH = topbar.getBoundingClientRect().height;
+    const panelH = panel.getBoundingClientRect().height;
+
+    // Convert to pixel padding. Add a little breathing room.
+    const padTop = Math.round(headerH + 12);
+    const padBottom = Math.round(panelH + 14);
+
+    map.fitBounds(bounds, {
+      paddingTopLeft: [14, padTop],
+      paddingBottomRight: [14, padBottom],
+      animate: true,
+    });
+  }
+
+  function selectLeg(legKey) {
+    const layer = layerByLeg.get(String(legKey));
+    const props = featureByLeg.get(String(legKey));
     if (!layer || !props) return;
 
-    // Remember current view after we fit (for zoom-out-a-little on close)
-    // We’ll set these AFTER fitting, so the “close” zoom-out is relative to the selected leg view.
     setExpanded();
 
-    // Style selection
+    // style previous
     if (selectedLineLayer && selectedLineLayer !== layer) {
       selectedLineLayer.setStyle(lineStyle(false));
     }
     selectedLineLayer = layer;
     layer.setStyle(lineStyle(true));
 
-    // Ensure dropdown reflects selection
-    legSelect.value = String(leg);
+    // dropdown reflect
+    legSelect.value = String(legKey);
 
-    // Render panel
+    // panel content
     renderDetails(props);
 
-    // Fit map to selected leg
-    fitToLayer(layer);
+    // Fit with UI-aware padding
+    // Wait one frame so the panel + compact header have their final sizes
+    requestAnimationFrame(() => {
+      fitToLayerBetweenHeaderAndPanel(layer);
+      addFinishFlagForFeature(layer.feature);
 
-    // Add finish flag for selected leg only
-    addFinishFlagForFeature(layer.feature);
-
-    // After animation, capture view for close behaviour
-    // (Small timeout is enough; Leaflet fitBounds animates)
-    window.setTimeout(() => {
-      lastSelectedCenter = map.getCenter();
-      lastSelectedZoom = map.getZoom();
-    }, 250);
+      // Store this view for "zoom out a little" on close
+      window.setTimeout(() => {
+        lastSelectedCenter = map.getCenter();
+        lastSelectedZoom = map.getZoom();
+      }, 250);
+    });
   }
 
   function populateDropdown(legs) {
-    // legs is array of leg strings/numbers sorted
     const frag = document.createDocumentFragment();
     for (const leg of legs) {
       const opt = document.createElement("option");
@@ -234,7 +237,6 @@
     if (!res.ok) throw new Error(`Failed to fetch GeoJSON (${res.status})`);
     const geojson = await res.json();
 
-    // Build route layer and indexes
     routeLayer = L.geoJSON(geojson, {
       style: () => lineStyle(false),
       filter: (f) => f && f.geometry && f.geometry.type === "LineString",
@@ -244,17 +246,14 @@
         if (leg === undefined || leg === null || leg === "") return;
 
         const legKey = String(leg);
-
         layerByLeg.set(legKey, layer);
         featureByLeg.set(legKey, props);
 
-        layer.on("click", () => selectLeg(legKey, "line"));
-        // Keep popup minimal
+        layer.on("click", () => selectLeg(legKey));
         layer.bindPopup(`Leg ${legKey}`, { closeButton: true });
       },
     }).addTo(map);
 
-    // Start markers (numbered diamonds)
     startMarkersLayer.clearLayers();
     geojson.features
       .filter(f => f && f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates))
@@ -266,21 +265,20 @@
         const coords = f.geometry.coordinates;
         if (!coords.length) return;
 
-        const first = coords[0]; // [lon, lat]
+        const first = coords[0];
         const latlng = L.latLng(first[1], first[0]);
 
         const marker = L.marker(latlng, {
           icon: diamondIcon(leg),
-          keyboard: true,
           title: `Leg ${leg} start`,
           riseOnHover: true,
         }).addTo(startMarkersLayer);
 
-        marker.on("click", () => selectLeg(String(leg), "marker"));
+        marker.on("click", () => selectLeg(String(leg)));
         marker.bindPopup(`Leg ${leg}`, { closeButton: true });
       });
 
-    // Populate dropdown sorted by leg number
+    // Populate dropdown
     const legsSorted = Array.from(layerByLeg.keys())
       .map(k => Number(k))
       .filter(n => Number.isFinite(n))
@@ -289,33 +287,28 @@
 
     populateDropdown(legsSorted);
 
-    // Initial view: fit full route, minimal padding so it fills screen
+    // Initial view: fit full route, very small padding
     const b = routeLayer.getBounds();
     if (b && b.isValid()) {
-      map.fitBounds(b.pad(0.06), { animate: false });
+      map.fitBounds(b.pad(0.04), { animate: false });
     }
 
-    // Start collapsed
     setCollapsed();
 
-    // Dropdown selection
     legSelect.addEventListener("change", (e) => {
       const val = e.target.value;
       if (!val) return;
-      selectLeg(val, "dropdown");
+      selectLeg(val);
     });
 
-    // Close button
     closeBtn.addEventListener("click", () => {
-      clearSelection(true); // zoom out a little
+      clearSelection(true);
     });
   }
 
   load().catch((err) => {
     console.error(err);
-    // If load fails, keep a simple message in the collapsed panel
     panelTip.textContent = "Couldn’t load the route. Please check the GeoJSON file path/name.";
     setCollapsed();
   });
-
 })();
