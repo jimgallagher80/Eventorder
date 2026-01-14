@@ -2,7 +2,9 @@
   "use strict";
 
   const GEOJSON_URL = "ALL_COASTAL_LEGS_ENRICHED.geojson";
+
   const ORANGE = "#ff7a00";
+  const GREY = "#6a6a6a";
 
   const $ = (id) => document.getElementById(id);
 
@@ -16,7 +18,6 @@
   const legSelect = $("legSelect");
   const topbar = $("topbar");
 
-  // Map init
   const map = L.map("map", {
     zoomControl: true,
     preferCanvas: true,
@@ -28,16 +29,22 @@
   }).addTo(map);
 
   let routeLayer = null;
+
+  // Marker layer group
   const startMarkersLayer = L.layerGroup().addTo(map);
 
+  // State
   let selectedLineLayer = null;
+  let selectedLegKey = null;
   let finishMarker = null;
 
   let lastSelectedCenter = null;
   let lastSelectedZoom = null;
 
-  const layerByLeg = new Map();
-  const featureByLeg = new Map();
+  // Index
+  const layerByLeg = new Map();     // leg -> polyline layer
+  const propsByLeg = new Map();     // leg -> properties
+  const markerByLeg = new Map();    // leg -> marker
 
   function safe(v) {
     return (v === undefined || v === null || v === "") ? "—" : v;
@@ -61,22 +68,47 @@
     return `<a href="${u}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   }
 
-  function lineStyle(selected) {
+  function lineStyle(state) {
+    // "normal" | "dim" | "selected"
+    if (state === "selected") {
+      return {
+        color: ORANGE,
+        weight: 10,
+        opacity: 0.95,
+        lineCap: "round",
+        lineJoin: "round",
+      };
+    }
+    if (state === "dim") {
+      return {
+        color: GREY,
+        weight: 5,
+        opacity: 0.65,
+        lineCap: "round",
+        lineJoin: "round",
+      };
+    }
     return {
       color: ORANGE,
-      weight: selected ? 10 : 6,
+      weight: 6,
       opacity: 0.95,
       lineCap: "round",
       lineJoin: "round",
     };
   }
 
-  function diamondIcon(leg) {
+  function diamondIcon(leg, state) {
+    const isSelected = state === "selected";
+    const isDim = state === "dim";
+
+    const bg = isSelected ? ORANGE : (isDim ? GREY : ORANGE);
+    const text = isSelected ? "#111" : (isDim ? "#f2f2f2" : "#111");
+
     return L.divIcon({
       className: "",
       html: `
-        <div class="diamond-wrap" aria-label="Leg ${leg} start marker">
-          <div class="diamond-num">${leg}</div>
+        <div class="diamond-wrap" style="background:${bg}">
+          <div class="diamond-num" style="color:${text}">${leg}</div>
         </div>
       `,
       iconSize: [30, 30],
@@ -118,13 +150,45 @@
     }
   }
 
-  function clearSelection(zoomOutALittle = false) {
-    if (selectedLineLayer) {
-      selectedLineLayer.setStyle(lineStyle(false));
-      selectedLineLayer = null;
-    }
+  function setAllLines(state) {
+    if (!routeLayer) return;
+    routeLayer.eachLayer((l) => l.setStyle(lineStyle(state)));
+  }
 
+  function setAllDiamonds(state) {
+    for (const [legKey, marker] of markerByLeg.entries()) {
+      if (!marker) continue;
+      marker.setIcon(diamondIcon(legKey, state));
+    }
+  }
+
+  function applySelectionStyles(legKey) {
+    // Dim everything
+    setAllLines("dim");
+    setAllDiamonds("dim");
+
+    // Highlight the selected leg + diamond
+    const layer = layerByLeg.get(String(legKey));
+    if (layer) layer.setStyle(lineStyle("selected"));
+
+    const marker = markerByLeg.get(String(legKey));
+    if (marker) marker.setIcon(diamondIcon(String(legKey), "selected"));
+  }
+
+  function clearSelection(zoomOutALittle = false) {
+    selectedLegKey = null;
+
+    // Restore all styling
+    setAllLines("normal");
+    setAllDiamonds("normal");
+
+    // Remove finish marker
     clearFinishFlag();
+
+    // Clear refs
+    selectedLineLayer = null;
+
+    // Reset dropdown
     legSelect.value = "";
 
     if (zoomOutALittle && lastSelectedCenter && Number.isFinite(lastSelectedZoom)) {
@@ -168,17 +232,14 @@
   }
 
   function fitToLayerBetweenHeaderAndPanel(layer) {
-    // Use Leaflet's padding options to keep the leg visible between header and expanded panel.
     const bounds = layer.getBounds();
     if (!bounds || !bounds.isValid()) return;
 
-    // Measure actual UI heights at runtime
     const headerH = topbar.getBoundingClientRect().height;
     const panelH = panel.getBoundingClientRect().height;
 
-    // Convert to pixel padding. Add a little breathing room.
-    const padTop = Math.round(headerH + 12);
-    const padBottom = Math.round(panelH + 14);
+    const padTop = Math.round(headerH + 10);
+    const padBottom = Math.round(panelH + 12);
 
     map.fitBounds(bounds, {
       paddingTopLeft: [14, padTop],
@@ -189,31 +250,28 @@
 
   function selectLeg(legKey) {
     const layer = layerByLeg.get(String(legKey));
-    const props = featureByLeg.get(String(legKey));
+    const props = propsByLeg.get(String(legKey));
     if (!layer || !props) return;
+
+    selectedLegKey = String(legKey);
 
     setExpanded();
 
-    // style previous
-    if (selectedLineLayer && selectedLineLayer !== layer) {
-      selectedLineLayer.setStyle(lineStyle(false));
-    }
-    selectedLineLayer = layer;
-    layer.setStyle(lineStyle(true));
-
-    // dropdown reflect
+    // Ensure dropdown reflects selection
     legSelect.value = String(legKey);
 
-    // panel content
+    // Panel content
     renderDetails(props);
 
-    // Fit with UI-aware padding
-    // Wait one frame so the panel + compact header have their final sizes
+    // Apply dim/highlight styles
+    applySelectionStyles(legKey);
+
+    // Fit with UI-aware padding after the panel & compact header are laid out
     requestAnimationFrame(() => {
       fitToLayerBetweenHeaderAndPanel(layer);
       addFinishFlagForFeature(layer.feature);
 
-      // Store this view for "zoom out a little" on close
+      // Save current view for close behaviour
       window.setTimeout(() => {
         lastSelectedCenter = map.getCenter();
         lastSelectedZoom = map.getZoom();
@@ -237,8 +295,9 @@
     if (!res.ok) throw new Error(`Failed to fetch GeoJSON (${res.status})`);
     const geojson = await res.json();
 
+    // Lines
     routeLayer = L.geoJSON(geojson, {
-      style: () => lineStyle(false),
+      style: () => lineStyle("normal"),
       filter: (f) => f && f.geometry && f.geometry.type === "LineString",
       onEachFeature: (feature, layer) => {
         const props = feature.properties || {};
@@ -246,15 +305,19 @@
         if (leg === undefined || leg === null || leg === "") return;
 
         const legKey = String(leg);
+
         layerByLeg.set(legKey, layer);
-        featureByLeg.set(legKey, props);
+        propsByLeg.set(legKey, props);
 
         layer.on("click", () => selectLeg(legKey));
         layer.bindPopup(`Leg ${legKey}`, { closeButton: true });
       },
     }).addTo(map);
 
+    // Start markers
     startMarkersLayer.clearLayers();
+    markerByLeg.clear();
+
     geojson.features
       .filter(f => f && f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates))
       .forEach(f => {
@@ -262,23 +325,26 @@
         const leg = props.leg;
         if (leg === undefined || leg === null || leg === "") return;
 
+        const legKey = String(leg);
         const coords = f.geometry.coordinates;
         if (!coords.length) return;
 
-        const first = coords[0];
+        const first = coords[0]; // [lon, lat]
         const latlng = L.latLng(first[1], first[0]);
 
         const marker = L.marker(latlng, {
-          icon: diamondIcon(leg),
-          title: `Leg ${leg} start`,
+          icon: diamondIcon(legKey, "normal"),
+          title: `Leg ${legKey} start`,
           riseOnHover: true,
         }).addTo(startMarkersLayer);
 
-        marker.on("click", () => selectLeg(String(leg)));
-        marker.bindPopup(`Leg ${leg}`, { closeButton: true });
+        marker.on("click", () => selectLeg(legKey));
+        marker.bindPopup(`Leg ${legKey}`, { closeButton: true });
+
+        markerByLeg.set(legKey, marker);
       });
 
-    // Populate dropdown
+    // Dropdown
     const legsSorted = Array.from(layerByLeg.keys())
       .map(k => Number(k))
       .filter(n => Number.isFinite(n))
@@ -287,7 +353,7 @@
 
     populateDropdown(legsSorted);
 
-    // Initial view: fit full route, very small padding
+    // Initial view: whole route
     const b = routeLayer.getBounds();
     if (b && b.isValid()) {
       map.fitBounds(b.pad(0.04), { animate: false });
