@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+  />
+  <title>Perfect Drop</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-shell">
+    <header class="topbar">
+      <div class="brand">Perfect Drop</div>
+      <div class="score-wrap">
+        <div class="score-box">
+          <span class="label">Score</span>
+          <span id="score">0</span>
+        </div>
+        <div class="score-box">
+          <span class="label">Best</span>
+          <span id="bestScore">0</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="game-area">
+      <canvas id="gameCanvas" width="420" height="720" aria-label="Perfect Drop game"></canvas>
+
+      <div id="startOverlay" class="overlay visible">
+        <div class="panel">
+          <h1>Perfect Drop</h1>
+          <p>Tap or click to drop the moving block.</p>
+          <p>Stack as high as you can. Miss completely and it’s game over.</p>
+          <button id="startButton" class="btn">Start Game</button>
+        </div>
+      </div>
+
+      <div id="gameOverOverlay" class="overlay">
+        <div class="panel">
+          <h2>Game Over</h2>
+          <p>Your score: <strong id="finalScore">0</strong></p>
+          <button id="restartButton" class="btn">Play Again</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>Tap anywhere on the game area to drop each block.</p>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
