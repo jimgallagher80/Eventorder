@@ -1,0 +1,170 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #111318;
+  color: #f4f4f4;
+  font-family: Arial, Helvetica, sans-serif;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+}
+
+.game-shell {
+  width: 100%;
+  max-width: 520px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #171a21;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.score-wrap {
+  display: flex;
+  gap: 10px;
+}
+
+.score-box {
+  min-width: 72px;
+  padding: 8px 10px;
+  background: #232833;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.score-box .label {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.score-box span:last-child {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.game-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 180px);
+  background: linear-gradient(to bottom, #1e2430 0%, #161a21 100%);
+  border-radius: 14px;
+  display: block;
+  touch-action: manipulation;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.overlay {
+  position: absolute;
+  inset: 12px;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: rgba(8, 10, 14, 0.68);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.overlay.visible {
+  display: flex;
+}
+
+.panel {
+  width: 100%;
+  max-width: 320px;
+  background: #202531;
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.panel h1,
+.panel h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.panel p {
+  margin: 10px 0;
+  line-height: 1.45;
+  opacity: 0.95;
+}
+
+.btn {
+  margin-top: 14px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  background: #f4f4f4;
+  color: #111318;
+  cursor: pointer;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.footer {
+  padding: 14px 16px 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 12px;
+  }
+
+  .brand {
+    font-size: 1.1rem;
+  }
+
+  .score-box {
+    min-width: 64px;
+    padding: 7px 8px;
+  }
+
+  .footer {
+    font-size: 0.82rem;
+  }
+}
