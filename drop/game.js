@@ -32,12 +32,12 @@
 
   let gameState = "menu";
   let lastTime = 0;
+  let groundY = 760;
   let worldSpeed = 360;
-  let targetWorldSpeed = 360;
+  let targetWorldSpeed = 0;
   let effectiveWorldSpeed = 0;
   let isTabletMode = false;
   let isDesktopMode = false;
-  let groundY = 760;
 
   const player = {
     x: 280,
@@ -64,8 +64,8 @@
     successfulLandings: 0,
     bestLandingQuality: "None",
     obstaclesCleared: 0,
-    nextObstacleSpawn: 0,
-    nextPlatformSpawn: 0,
+    nextObstacleSpawn: 700,
+    nextPlatformSpawn: 1800,
     obstacles: [],
     platforms: [],
     stars: [],
@@ -138,7 +138,6 @@
 
     targetWorldSpeed = 0;
     effectiveWorldSpeed = 0;
-    worldSpeed = 360;
 
     seedBackgroundStars();
     seedStartPlatform();
@@ -159,10 +158,10 @@
   }
 
   function seedStartPlatform() {
-    const rect = canvas.getBoundingClientRect();
-    const startType = "ship";
-    const start = createPlatform(player.x - 70, startType);
+    const start = createPlatform(player.x - 70, "ship");
     start.startPad = true;
+    start.motionAmp = 0;
+    updatePlatformDeck(start);
     world.platforms.push(start);
   }
 
@@ -182,8 +181,7 @@
       resetWorld();
 
       const startPlatform = world.platforms[0];
-      const landingZoneY = startPlatform.deckY;
-      player.y = landingZoneY - player.h + 2;
+      player.y = startPlatform.deckY - player.h + 2;
 
       gameState = "playing";
       statusValue.textContent = "Ready";
@@ -244,7 +242,12 @@
 
   function saveLocalLeaderboard(score, distance, landings) {
     const entries = getLocalLeaderboard();
-    entries.push({ name: "You", score, distance, landings });
+    entries.push({
+      name: "You",
+      score,
+      distance,
+      landings
+    });
     entries.sort((a, b) => b.score - a.score);
     localStorage.setItem(STORAGE_KEYS.localTop10, JSON.stringify(entries.slice(0, 10)));
   }
@@ -331,23 +334,27 @@
     }
 
     if (type === "tree") {
+      const h = isTabletMode ? 200 : 150;
+      const w = isTabletMode ? 80 : 62;
       return {
         type,
         x,
-        w: isTabletMode ? 80 : 62,
-        h: isTabletMode ? 200 : 150,
-        y: groundY - (isTabletMode ? 200 : 150),
+        w,
+        h,
+        y: groundY - h,
         speedMul: 1,
         passed: false
       };
     }
 
+    const buildingH = isTabletMode ? 280 : 220;
+    const buildingW = isTabletMode ? 120 : 95;
     return {
       type: "building",
       x,
-      w: isTabletMode ? 120 : 95,
-      h: isTabletMode ? 280 : 220,
-      y: groundY - (isTabletMode ? 280 : 220),
+      w: buildingW,
+      h: buildingH,
+      y: groundY - buildingH,
       speedMul: 1,
       passed: false
     };
@@ -432,11 +439,7 @@
         world.fuelOutFalling = true;
       }
 
-      if (world.fuelOutFalling) {
-        statusValue.textContent = "Out of fuel";
-      } else {
-        statusValue.textContent = "Flying";
-      }
+      statusValue.textContent = world.fuelOutFalling ? "Out of fuel" : "Flying";
 
       world.nextObstacleSpawn -= effectiveWorldSpeed * dt;
       world.nextPlatformSpawn -= effectiveWorldSpeed * dt;
@@ -452,13 +455,13 @@
       }
     } else {
       player.vy = 0;
-      player.fuel += player.refuelRate * dt;
-      player.fuel = Math.min(player.fuel, player.maxFuel);
 
-      if (!player.airborneStarted) {
-        statusValue.textContent = "Ready";
-      } else {
+      if (player.airborneStarted) {
+        player.fuel += player.refuelRate * dt;
+        player.fuel = Math.min(player.fuel, player.maxFuel);
         statusValue.textContent = "Refuelling";
+      } else {
+        statusValue.textContent = "Ready";
       }
     }
 
@@ -528,7 +531,7 @@
         p.x -= effectiveWorldSpeed * dt;
       }
 
-      if (p.type === "ship") {
+      if (p.type === "ship" && p.motionAmp > 0) {
         p.motionPhase += dt * 1.5;
         p.y = groundY - 24 + Math.sin(p.motionPhase) * p.motionAmp;
       }
@@ -628,7 +631,6 @@
         player.y = landingZone.y - player.h + 2;
         player.vy = 0;
         player.landed = true;
-        p.used = true;
         targetWorldSpeed = 28;
 
         let quality = "Safe";
@@ -1007,4 +1009,63 @@
     ctx2d.closePath();
   }
 
- 
+  function loop(timestamp) {
+    const dt = Math.min(0.033, (timestamp - lastTime) / 1000 || 0);
+    lastTime = timestamp;
+
+    updateOrientationOverlay();
+    update(dt);
+    draw();
+
+    requestAnimationFrame(loop);
+  }
+
+  function handlePrimaryAction(target) {
+    if (target && typeof target.closest === "function" && target.closest("button")) return;
+    flap();
+  }
+
+  function onPointerDown(e) {
+    handlePrimaryAction(e.target);
+  }
+
+  function onKeyDown(e) {
+    if (e.code === "Space") {
+      e.preventDefault();
+      flap();
+    }
+
+    if (e.code === "KeyP" && (gameState === "playing" || gameState === "paused")) {
+      e.preventDefault();
+      pauseGame();
+    }
+  }
+
+  function init() {
+    renderStoredScores();
+    updateOrientationOverlay();
+
+    playBtn.addEventListener("click", startGame);
+    playAgainBtn.addEventListener("click", startGame);
+    backToMenuBtn.addEventListener("click", showMenu);
+    pauseBtn.addEventListener("click", pauseGame);
+
+    window.addEventListener("resize", () => {
+      updateOrientationOverlay();
+      resizeCanvas();
+    });
+
+    window.addEventListener("orientationchange", () => {
+      updateOrientationOverlay();
+      resizeCanvas();
+    });
+
+    document.addEventListener("pointerdown", onPointerDown, { passive: false });
+    document.addEventListener("keydown", onKeyDown);
+
+    resizeCanvas();
+    requestAnimationFrame(loop);
+  }
+
+  init();
+})();
