@@ -34,7 +34,7 @@ $institutions = [
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#6f3fc8">
+    <meta name="theme-color" content="#320256">
     <meta name="description" content="Valence — meaningful connections. Real chemistry. Register your interest in our upcoming launch.">
     <title>Valence — Meaningful connections. Real chemistry.</title>
     <link rel="stylesheet" href="assets/style.css">
@@ -145,7 +145,7 @@ $institutions = [
     <footer class="footer">
         <div class="socials" aria-label="Valence social media">
             <a href="https://www.facebook.com/valence.love" aria-label="Valence on Facebook" target="_blank" rel="noopener noreferrer"><img src="assets/facebook.png" alt="" width="28" height="28"></a>
-            <a href="https://x.com/valence.love" aria-label="Valence on X" target="_blank" rel="noopener noreferrer"><img src="assets/x.png" alt="" width="28" height="28"></a>
+            <a href="https://x.com/valencelove" aria-label="Valence on X" target="_blank" rel="noopener noreferrer"><img src="assets/x.png" alt="" width="28" height="28"></a>
             <a href="https://www.instagram.com/valence.love" aria-label="Valence on Instagram" target="_blank" rel="noopener noreferrer"><img src="assets/instagram.png" alt="" width="28" height="28"></a>
         </div>
         <p><a href="privacy.php">Privacy</a> <span aria-hidden="true">·</span> <a href="mailto:james@valence.love">Contact</a></p>
