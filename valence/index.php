@@ -43,7 +43,7 @@ $institutions = [
     <main>
         <section class="hero" id="home" aria-labelledby="hero-title">
             <div class="hero-inner">
-                <img class="logo" src="assets/valence-logo.png" alt="Valence" width="1200" height="600">
+                <img class="logo" src="assets/valence-logo.PNG" alt="Valence" width="1200" height="600">
                 <h1 id="hero-title" class="sr-only">Valence</h1>
                 <p class="tagline">Meaningful connections. Real chemistry.</p>
                 <nav class="hero-actions" aria-label="Main navigation">
