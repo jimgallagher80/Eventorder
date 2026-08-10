@@ -23,8 +23,8 @@ jobs:
 
           protocol: ftp
           port: 21
-          server-dir: HTDOCS/
-
+          server-dir: /
+b
           exclude: |
             **/.git*
             **/.github/**
